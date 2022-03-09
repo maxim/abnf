@@ -352,17 +352,17 @@ class RegexpTree
   class CharClass < Elt
     None = NatSet.empty
     Any = NatSet.universal
-    NL = NatSet.new(?\n)
+    NL = NatSet[?\n]
     NonNL = ~NL
-    Word = NatSet.new(?0..?9, ?A..?Z, ?_, ?a..?z)
+    Word = NatSet[?0..?9, ?A..?Z, ?_, ?a..?z]
     NonWord = ~Word
-    Space = NatSet.new(?t, ?\n, ?\f, ?\r, ?\s)
+    Space = NatSet[?t, ?\n, ?\f, ?\r, ?\s]
     NonSpace = ~Space
-    Digit = NatSet.new(?0..?9)
+    Digit = NatSet[?0..?9]
     NonDigit = ~Digit
 
-    UpAlpha = NatSet.new(?A..?Z)
-    LowAlpha = NatSet.new(?a..?z)
+    UpAlpha = NatSet[?A..?Z]
+    LowAlpha = NatSet[?a..?z]
 
     def initialize(natset)
       @natset = natset
@@ -376,10 +376,8 @@ class RegexpTree
     def case_insensitive?
       up = @natset & UpAlpha
       low = @natset & LowAlpha
-      return false if up.es.length != low.es.length
-      up.es.map! {|ch|
-        ch - 0x41 + 0x61 # ?A + ?a
-      }
+      return false if up.size != low.size
+      up.ranges.map! { |r| shift_to_lowercase(r) }
       up == low
     end
 
@@ -389,9 +387,7 @@ class RegexpTree
 
     def downcase
       up = @natset & UpAlpha
-      up.es.map! {|ch|
-        ch - 0x41 + 0x61 # ?A + ?a
-      }
+      up.ranges.map! { |r| shift_to_lowercase(r) }
       CharClass.new((@natset - UpAlpha) | up)
     end
 
@@ -411,25 +407,15 @@ class RegexpTree
         if val = @natset.singleton?
           out.text encode_elt(val)
         else
-          if @natset.open?
-            neg_mark = '^'
-            es = (~@natset).es
-          else
-            neg_mark = ''
-            es = @natset.es.dup
-          end
+          neg_mark = @natset.open? ? '^' : ''
+
           r = ''
-          until es.empty?
-            if es[0] + 1 == es[1]
-              r << encode_elt(es[0])
-            elsif es[0] + 2 == es[1]
-              r << encode_elt(es[0]) << encode_elt(es[1] - 1)
-            else
-              r << encode_elt(es[0]) << '-' << encode_elt(es[1] - 1)
-            end
-            es.shift
-            es.shift
+          @natset.ranges.each do |range|
+            r << encode_elt(range.begin)
+            r << '-' if range.size > 2
+            r << encode_elt(range.end)
           end
+
           out.text "[#{neg_mark}#{r}]"
         end
       end
@@ -450,6 +436,14 @@ class RegexpTree
       else
         sprintf("\\x%02x", e)
       end
+    end
+
+    private
+
+    def shift_to_lowercase(ascii_range)
+      r_begin = ascii_range.begin - 0x41 + 0x61 # - ?A + ?a
+      r_end = ascii_range.end && (ascii_range.end - 0x41 + 0x61)
+      (r_begin..r_end)
     end
   end
 
@@ -520,7 +514,7 @@ class RegexpTree
   def RegexpTree.str(str)
     ccs = []
     str.each_byte {|ch|
-      ccs << CharClass.new(NatSet.new(ch))
+      ccs << CharClass.new(NatSet[ch])
     }
     seq(*ccs)
   end
