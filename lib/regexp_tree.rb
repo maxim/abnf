@@ -351,19 +351,19 @@ class RegexpTree
   end
 
   class CharClass < Elt
-    None = NatSet.empty
-    Any = NatSet.universal
-    NL = NatSet[?\n]
+    None = Natset.empty
+    Any = Natset.universal
+    NL = Natset[?\n]
     NonNL = ~NL
-    Word = NatSet[?0..?9, ?A..?Z, ?_, ?a..?z]
+    Word = Natset[?0..?9, ?A..?Z, ?_, ?a..?z]
     NonWord = ~Word
-    Space = NatSet[?t, ?\n, ?\f, ?\r, ?\s]
+    Space = Natset[?t, ?\n, ?\f, ?\r, ?\s]
     NonSpace = ~Space
-    Digit = NatSet[?0..?9]
+    Digit = Natset[?0..?9]
     NonDigit = ~Digit
 
-    UpAlpha = NatSet[?A..?Z]
-    LowAlpha = NatSet[?a..?z]
+    UpAlpha = Natset[?A..?Z]
+    LowAlpha = Natset[?a..?z]
 
     def initialize(natset)
       @natset = natset
@@ -516,7 +516,7 @@ class RegexpTree
   def RegexpTree.str(str)
     ccs = []
     str.each_byte {|ch|
-      ccs << CharClass.new(NatSet[ch])
+      ccs << CharClass.new(Natset[ch])
     }
     seq(*ccs)
   end

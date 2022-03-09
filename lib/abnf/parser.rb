@@ -716,40 +716,40 @@ module_eval(<<'...end parser.y/module_eval...', 'parser.y', 48)
 	    case b
 	    when 0x41..0x5a # ?A..?Z
 	      b2 = b - 0x41 + 0x61 # ?A + ?a
-	      es << Term.new(NatSet.new(b, b2))
+	      es << Term.new(Natset.new(b, b2))
 	    when 0x61..0x7a # ?a..?z
 	      b2 = b - 0x61 + 0x41 # ?a + ?A
-	      es << Term.new(NatSet.new(b, b2))
+	      es << Term.new(Natset.new(b, b2))
 	    else
-	      es << Term.new(NatSet.new(b))
+	      es << Term.new(Natset.new(b))
 	    end
 	  }
 	  yield :val, Seq.new(*es)
 	when /\A%b([01]+)-([01]+)/
 	  t = $&
-	  yield :val, Term.new(NatSet.new($1.to_i(2)..$2.to_i(2)))
+	  yield :val, Term.new(Natset.new($1.to_i(2)..$2.to_i(2)))
 	when /\A%b[01]+(?:\.[01]+)*/
 	  es = []
 	  (t = $&).scan(/[0-1]+/) {|v|
-	    es << Term.new(NatSet.new(v.to_i(2)))
+	    es << Term.new(Natset.new(v.to_i(2)))
 	  }
 	  yield :val, Seq.new(*es)
 	when /\A%d([0-9]+)-([0-9]+)/
 	  t = $&
-	  yield :val, Term.new(NatSet.new($1.to_i..$2.to_i))
+	  yield :val, Term.new(Natset.new($1.to_i..$2.to_i))
 	when /\A%d[0-9]+(?:\.[0-9]+)*/
 	  es = []
 	  (t = $&).scan(/[0-9]+/) {|v|
-	    es << Term.new(NatSet.new(v.to_i))
+	    es << Term.new(Natset.new(v.to_i))
 	  }
 	  yield :val, Seq.new(*es)
 	when /\A%x([0-9A-Fa-f]+)-([0-9A-Fa-f]+)/
 	  t = $&
-	  yield :val, Term.new(NatSet.new($1.hex..$2.hex))
+	  yield :val, Term.new(Natset.new($1.hex..$2.hex))
 	when /\A%x[0-9A-Fa-f]+(?:\.[0-9A-Fa-f]+)*/
 	  es = []
 	  (t = $&).scan(/[0-9A-Fa-f]+/) {|v|
-	    es << Term.new(NatSet.new(v.hex))
+	    es << Term.new(Natset.new(v.hex))
 	  }
 	  yield :val, Seq.new(*es)
 	when /\A<([\x20-\x3D\x3F-\x7E]*)>/

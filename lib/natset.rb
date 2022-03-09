@@ -1,7 +1,7 @@
 require 'pp'
 
-# NatSet represents a set of naturals - non-negative integers.
-class NatSet
+# Natset represents a set of naturals - non-negative integers.
+class Natset
   attr_reader :ranges
 
   class << self
