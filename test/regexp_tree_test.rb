@@ -1,4 +1,4 @@
-require 'regexptree'
+require 'regexp_tree'
 
 class TestRegexpTree < Test::Unit::TestCase
   def test_whitespace

@@ -1,5 +1,5 @@
 require 'abnf/abnf'
-require 'regexptree'
+require 'regexp_tree'
 
 class ABNF
   class TooComplex < StandardError
