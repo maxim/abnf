@@ -59,19 +59,10 @@ require 'prettyprint'
 require 'natset'
 
 class RegexpTree
-  @curr_prec = 1
-  def RegexpTree.inherited(c)
-    return if c.superclass != RegexpTree
-    c.const_set(:Prec, @curr_prec)
-    @curr_prec += 1
-  end
+  PRECEDENCE = 1
 
   def parenthesize(target)
-    if target::Prec <= self.class::Prec
-      self
-    else
-      Paren.new(self)
-    end
+    target::PRECEDENCE <= self.class::PRECEDENCE ? self : Paren.new(self)
   end
 
   def pretty_print(pp)
@@ -157,7 +148,10 @@ class RegexpTree
     else; Alt.new(rs2)
     end
   end
+
   class Alt < RegexpTree
+    PRECEDENCE = 2
+
     def initialize(rs)
       @rs = rs
     end
@@ -219,7 +213,10 @@ class RegexpTree
     else; Seq.new(rs2)
     end
   end
+
   class Seq < RegexpTree
+    PRECEDENCE = 3
+
     def initialize(rs)
       @rs = rs
     end
@@ -286,6 +283,8 @@ class RegexpTree
   end
 
   class Rep < RegexpTree
+    PRECEDENCE = 4
+
     def initialize(r, m=0, n=nil, greedy=true)
       @r = r
       @m = m
@@ -340,6 +339,7 @@ class RegexpTree
   end
 
   class Elt < RegexpTree
+    PRECEDENCE = 5
   end
 
   def RegexpTree.charclass(natset)
@@ -349,6 +349,7 @@ class RegexpTree
       CharClass.new(natset)
     end
   end
+
   class CharClass < Elt
     None = NatSet.empty
     Any = NatSet.universal
@@ -456,6 +457,7 @@ class RegexpTree
   def RegexpTree.non_word_boundary() Special.new('\B') end
   def RegexpTree.previous_match() Special.new('\G') end
   def RegexpTree.backref(n) Special.new("\\#{n}") end
+
   class Special < Elt
     def initialize(str)
       @str = str
