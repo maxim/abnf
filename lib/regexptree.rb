@@ -84,9 +84,9 @@ class RegexpTree
 
   def inspect
     case_insensitive = case_insensitive? ? "i" : ""
-    r = PrettyPrint.singleline_format('') {|out|
-	  (case_insensitive ? self.downcase : self).pretty_format(out)
-	}
+    r = PrettyPrint.singleline_format('') { |out|
+      (case_insensitive ? self.downcase : self).pretty_format(out)
+    }
     if %r{/} =~ r
       "%r{#{r}}#{case_insensitive}"
     else
@@ -103,24 +103,22 @@ class RegexpTree
       opt = 0
     end
     r = RegexpTree.seq(RegexpTree.strbeg, r, RegexpTree.strend) if anchored
-    Regexp.compile(
-      PrettyPrint.singleline_format('') {|out|
-	r.pretty_format(out)
-      },
-      opt)
+    Regexp.compile \
+      PrettyPrint.singleline_format('') { |out| r.pretty_format(out) },
+      opt
   end
 
   def to_s
     PrettyPrint.singleline_format('') {|out|
       # x flag is not required because all whitespaces are escaped.
       if case_insensitive?
-	out.text '(?i-m:'
-	downcase.pretty_format(out)
-	out.text ')'
+        out.text '(?i-m:'
+        downcase.pretty_format(out)
+        out.text ')'
       else
-	out.text '(?-im:'
-	pretty_format(out)
-	out.text ')'
+        out.text '(?-im:'
+        pretty_format(out)
+        out.text ')'
       end
     }
   end
@@ -145,10 +143,10 @@ class RegexpTree
         rs2.concat r.rs
       elsif CharClass === r
         if CharClass === rs2.last
-	  rs2[-1] = CharClass.new(rs2.last.natset + r.natset)
-	else
-	  rs2 << r
-	end
+          rs2[-1] = CharClass.new(rs2.last.natset + r.natset)
+        else
+          rs2 << r
+        end
       else
         rs2 << r
       end
@@ -185,15 +183,15 @@ class RegexpTree
       if @rs.empty?
         out.text '(?!)'
       else
-	out.group {
-	  @rs.each_with_index {|r, i|
-	    unless i == 0
-	      out.text '|'
-	      out.breakable ''
-	    end
-	    r.parenthesize(Alt).pretty_format(out)
-	  }
-	}
+        out.group {
+          @rs.each_with_index {|r, i|
+            unless i == 0
+              out.text '|'
+              out.breakable ''
+            end
+            r.parenthesize(Alt).pretty_format(out)
+          }
+        }
       end
     end
   end
@@ -206,9 +204,9 @@ class RegexpTree
     rs2 = []
     rs.each {|r|
       if r.empty_sequence?
-	next
+        next
       elsif Seq === r
-	rs2.concat r.rs
+        rs2.concat r.rs
       elsif r.empty_set?
         return EmptySet
       else
@@ -245,12 +243,12 @@ class RegexpTree
 
     def pretty_format(out)
       out.group {
-	@rs.each_with_index {|r, i|
-	  unless i == 0
-	    out.group {out.breakable ''}
-	  end
-	  r.parenthesize(Seq).pretty_format(out)
-	}
+        @rs.each_with_index {|r, i|
+          unless i == 0
+            out.group {out.breakable ''}
+          end
+          r.parenthesize(Seq).pretty_format(out)
+        }
       }
     end
   end
@@ -312,30 +310,31 @@ class RegexpTree
       case @m
       when 0
         case @n
-	when 0
-	  out.text '{0}'
-	when 1
-	  out.text '?'
-	when nil
-	  out.text '*'
-	else
-	  out.text "{#{@m},#{@n}}"
-	end
+        when 0
+          out.text '{0}'
+        when 1
+          out.text '?'
+        when nil
+          out.text '*'
+        else
+          out.text "{#{@m},#{@n}}"
+        end
       when 1
         case @n
-	when 1
-	when nil
-	  out.text '+'
-	else
-	  out.text "{#{@m},#{@n}}"
-	end
+        when 1
+        when nil
+          out.text '+'
+        else
+          out.text "{#{@m},#{@n}}"
+        end
       else
-	if @m == @n
-	  out.text "{#{@m}}"
-	else
-	  out.text "{#{@m},#{@n}}"
-	end
+        if @m == @n
+          out.text "{#{@m}}"
+        else
+          out.text "{#{@m},#{@n}}"
+        end
       end
+
       out.text '?' unless @greedy
     end
   end
@@ -411,27 +410,27 @@ class RegexpTree
       else
         if val = @natset.singleton?
           out.text encode_elt(val)
-	else
-	  if @natset.open?
-	    neg_mark = '^'
-	    es = (~@natset).es
-	  else
-	    neg_mark = ''
-	    es = @natset.es.dup
-	  end
-	  r = ''
-	  until es.empty?
-	    if es[0] + 1 == es[1]
-	      r << encode_elt(es[0])
-	    elsif es[0] + 2 == es[1]
-	      r << encode_elt(es[0]) << encode_elt(es[1] - 1)
-	    else
-	      r << encode_elt(es[0]) << '-' << encode_elt(es[1] - 1)
-	    end
-	    es.shift
-	    es.shift
-	  end
-	  out.text "[#{neg_mark}#{r}]"
+        else
+          if @natset.open?
+            neg_mark = '^'
+            es = (~@natset).es
+          else
+            neg_mark = ''
+            es = @natset.es.dup
+          end
+          r = ''
+          until es.empty?
+            if es[0] + 1 == es[1]
+              r << encode_elt(es[0])
+            elsif es[0] + 2 == es[1]
+              r << encode_elt(es[0]) << encode_elt(es[1] - 1)
+            else
+              r << encode_elt(es[0]) << '-' << encode_elt(es[1] - 1)
+            end
+            es.shift
+            es.shift
+          end
+          out.text "[#{neg_mark}#{r}]"
         end
       end
     end
@@ -512,9 +511,7 @@ class RegexpTree
     end
 
     def pretty_format(out)
-      out.group(1 + @mark.length, "(#@mark", ')') {
-	@r.pretty_format(out)
-      }
+      out.group(1 + @mark.length, "(#@mark", ')') { @r.pretty_format(out) }
     end
   end
 
