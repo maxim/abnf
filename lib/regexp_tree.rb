@@ -68,6 +68,9 @@ It can be converted to Regexp.
 class RegexpTree
   PRECEDENCE = 1
 
+  EmptySet = Alt.new([])
+  EmptySequence = Seq.new([])
+
   class << self
     def alt(*rs)
       rs2 = []
@@ -217,13 +220,9 @@ class RegexpTree
     RegexpTree.alt(self, other)
   end
 
-  EmptySet = Alt.new([])
-
   def +(other)
     RegexpTree.seq(self, other)
   end
-
-  EmptySequence = Seq.new([])
 
   def *(n)
     case n
