@@ -27,7 +27,7 @@ class RegexpTree
         next if tree.empty_set?
 
         if Alt === tree
-          result.concat(tree.rs)
+          result.concat tree.rs
         elsif CharClass === tree && CharClass === result.last
           result[-1] = CharClass.new(result.last.natset + tree.natset)
         else
@@ -43,19 +43,11 @@ class RegexpTree
     # Returns an instance of RegexpTree which is concatination of
     # ((|regexp_trees|)).
     def seq(*trees)
-      result = []
-
-      trees.each do |tree|
+      result = trees.each_with_object([]) { |tree, result|
+        return EMPTY_SET if tree.empty_set?
         next if tree.empty_sequence?
-
-        if Seq === tree
-          result.concat tree.rs
-        elsif tree.empty_set?
-          return EMPTY_SET
-        else
-          result << tree
-        end
-      end
+        Seq === tree ? result.concat(tree.rs) : result << tree
+      }
 
       return EMPTY_SEQ if result.empty?
       return result.first if result.one?
