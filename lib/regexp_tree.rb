@@ -1,3 +1,14 @@
+require 'prettyprint'
+require 'natset'
+
+require 'regexp_tree/alt'
+require 'regexp_tree/char_class'
+require 'regexp_tree/paren'
+require 'regexp_tree/alt'
+require 'regexp_tree/rep'
+require 'regexp_tree/seq'
+require 'regexp_tree/special'
+
 =begin
 = RegexpTree
 
@@ -54,10 +65,6 @@ It can be converted to Regexp.
 #--- nongreedy_optional
 #--- nongreedy_ntimes(min, max=min)
 =end
-
-require 'prettyprint'
-require 'natset'
-
 class RegexpTree
   PRECEDENCE = 1
 
@@ -149,46 +156,7 @@ class RegexpTree
     end
   end
 
-  class Alt < RegexpTree
-    PRECEDENCE = 2
 
-    def initialize(rs)
-      @rs = rs
-    end
-    attr_reader :rs
-
-    def empty_set?
-      @rs.empty?
-    end
-
-    def case_insensitive?
-      @rs.all? {|r| r.case_insensitive?}
-    end
-
-    def multiline_insensitive?
-      @rs.all? {|r| r.multiline_insensitive?}
-    end
-
-    def downcase
-      Alt.new(@rs.map {|r| r.downcase})
-    end
-
-    def pretty_format(out)
-      if @rs.empty?
-        out.text '(?!)'
-      else
-        out.group {
-          @rs.each_with_index {|r, i|
-            unless i == 0
-              out.text '|'
-              out.breakable ''
-            end
-            r.parenthesize(Alt).pretty_format(out)
-          }
-        }
-      end
-    end
-  end
   EmptySet = Alt.new([])
 
   def +(other)
@@ -214,41 +182,6 @@ class RegexpTree
     end
   end
 
-  class Seq < RegexpTree
-    PRECEDENCE = 3
-
-    def initialize(rs)
-      @rs = rs
-    end
-    attr_reader :rs
-
-    def empty_sequence?
-      @rs.empty?
-    end
-
-    def case_insensitive?
-      @rs.all? {|r| r.case_insensitive?}
-    end
-
-    def multiline_insensitive?
-      @rs.all? {|r| r.multiline_insensitive?}
-    end
-
-    def downcase
-      Seq.new(@rs.map {|r| r.downcase})
-    end
-
-    def pretty_format(out)
-      out.group {
-        @rs.each_with_index {|r, i|
-          unless i == 0
-            out.group {out.breakable ''}
-          end
-          r.parenthesize(Seq).pretty_format(out)
-        }
-      }
-    end
-  end
   EmptySequence = Seq.new([])
 
   def *(n)
@@ -282,169 +215,11 @@ class RegexpTree
     Rep.new(r, m, n, greedy)
   end
 
-  class Rep < RegexpTree
-    PRECEDENCE = 4
-
-    def initialize(r, m=0, n=nil, greedy=true)
-      @r = r
-      @m = m
-      @n = n
-      @greedy = greedy
-    end
-
-    def case_insensitive?
-      @r.case_insensitive?
-    end
-
-    def multiline_insensitive?
-      @r.multiline_insensitive?
-    end
-
-    def downcase
-      Rep.new(@r.downcase, @m, @n, @greedy)
-    end
-
-    def pretty_format(out)
-      @r.parenthesize(Elt).pretty_format(out)
-      case @m
-      when 0
-        case @n
-        when 0
-          out.text '{0}'
-        when 1
-          out.text '?'
-        when nil
-          out.text '*'
-        else
-          out.text "{#{@m},#{@n}}"
-        end
-      when 1
-        case @n
-        when 1
-        when nil
-          out.text '+'
-        else
-          out.text "{#{@m},#{@n}}"
-        end
-      else
-        if @m == @n
-          out.text "{#{@m}}"
-        else
-          out.text "{#{@m},#{@n}}"
-        end
-      end
-
-      out.text '?' unless @greedy
-    end
-  end
-
-  class Elt < RegexpTree
-    PRECEDENCE = 5
-  end
-
   def RegexpTree.charclass(natset)
     if natset.empty?
       EmptySet
     else
       CharClass.new(natset)
-    end
-  end
-
-  class CharClass < Elt
-    None = Natset.empty
-    Any = Natset.universal
-    NL = Natset[?\n]
-    NonNL = ~NL
-    Word = Natset[?0..?9, ?A..?Z, ?_, ?a..?z]
-    NonWord = ~Word
-    Space = Natset[?t, ?\n, ?\f, ?\r, ?\s]
-    NonSpace = ~Space
-    Digit = Natset[?0..?9]
-    NonDigit = ~Digit
-
-    UpAlpha = Natset[?A..?Z]
-    LowAlpha = Natset[?a..?z]
-
-    def initialize(natset)
-      @natset = natset
-    end
-    attr_reader :natset
-
-    def empty_set?
-      @natset.empty?
-    end
-
-    def case_insensitive?
-      up = @natset & UpAlpha
-      low = @natset & LowAlpha
-      return false if up.size != low.size
-      up.ranges.map! { |r| shift_to_lowercase(r) }
-      up == low
-    end
-
-    def multiline_insensitive?
-      @natset != NonNL
-    end
-
-    def downcase
-      up = @natset & UpAlpha
-      up.ranges.map! { |r| shift_to_lowercase(r) }
-      CharClass.new((@natset - UpAlpha) | up)
-    end
-
-    def pretty_format(out)
-      case @natset
-      when None; out.text '(?!)'
-      when Any; out.text '[\s\S]'
-      when NL; out.text '\n'
-      when NonNL; out.text '.'
-      when Word; out.text '\w'
-      when NonWord; out.text '\W'
-      when Space; out.text '\s'
-      when NonSpace; out.text '\S'
-      when Digit; out.text '\d'
-      when NonDigit; out.text '\D'
-      else
-        if val = @natset.singleton?
-          out.text encode_elt(val)
-        else
-          neg_mark = @natset.open? ? '^' : ''
-
-          r = ''
-          @natset.ranges.each do |range|
-            r << encode_elt(range.begin)
-            r << '-' if range.size > 2
-            r << encode_elt(range.end)
-          end
-
-          out.text "[#{neg_mark}#{r}]"
-        end
-      end
-    end
-
-    def encode_elt(e)
-      case e
-      when 0x09; '\t'
-      when 0x0a; '\n'
-      when 0x0d; '\r'
-      when 0x0c; '\f'
-      when 0x0b; '\v'
-      when 0x07; '\a'
-      when 0x1b; '\e'
-      #when ?!, ?", ?%, ?&, ?', ?,, ?:, ?;, ?<, ?=, ?>, ?/, ?0..?9, ?@, ?A..?Z, ?_, ?`, ?a..?z, ?~
-      when 0x21, 0x22, 0x25, 0x26, 0x27, 0x2c, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x2f, 0x30..0x39, 0x40, 0x41..0x5a, 0x5f, 0x60, 0x61..0x7a, 0x7e
-        sprintf("%c", e)
-      else
-        sprintf("\\x%02x", e)
-      end
-    end
-
-    private
-
-    def shift_to_lowercase(ascii_range)
-      r_begin = ascii_range.begin - 0x41 + 0x61 # - ?A + ?a
-      r_end = ascii_range.end && (ascii_range.end - 0x41 + 0x61)
-      (r_begin..r_end)
     end
   end
 
@@ -458,58 +233,10 @@ class RegexpTree
   def RegexpTree.previous_match() Special.new('\G') end
   def RegexpTree.backref(n) Special.new("\\#{n}") end
 
-  class Special < Elt
-    def initialize(str)
-      @str = str
-    end
-
-    def case_insensitive?
-      true
-    end
-
-    def multiline_insensitive?
-      true
-    end
-
-    def downcase
-      self
-    end
-
-    def pretty_format(out)
-      out.text @str
-    end
-  end
-
   def group() Paren.new(self, '') end
   def paren() Paren.new(self) end
   def lookahead() Paren.new(self, '?=') end
   def negative_lookahead() Paren.new(self, '?!') end
-  # (?ixm-ixm:...)
-  # (?>...)
-  class Paren < Elt
-    def initialize(r, mark='?:')
-      @mark = mark
-      @r = r
-    end
-
-    def case_insensitive?
-      # xxx: if @mark contains "i"...
-      @r.case_insensitive?
-    end
-
-    def multiline_insensitive?
-      # xxx: if @mark contains "m"...
-      @r.multiline_insensitive?
-    end
-
-    def downcase
-      Paren.new(@r.downcase, @mark)
-    end
-
-    def pretty_format(out)
-      out.group(1 + @mark.length, "(#@mark", ')') { @r.pretty_format(out) }
-    end
-  end
 
   # def RegexpTree.comment(str) ... end # (?#...)
 
