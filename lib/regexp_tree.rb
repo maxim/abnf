@@ -23,24 +23,17 @@ class RegexpTree
     # Returns an instance of RegexpTree which is alternation of
     # ((|regexp_trees|)).
     def alt(*trees)
-      result = []
-
-      trees.each do |tree|
+      result = trees.each_with_object([]) { |tree, result|
         next if tree.empty_set?
 
-        case tree
-        when Alt
+        if Alt === tree
           result.concat(tree.rs)
-        when CharClass
-          if CharClass === result.last
-            result[-1] = CharClass.new(result.last.natset + tree.natset)
-          else
-            result << tree
-          end
+        elsif CharClass === tree && CharClass === result.last
+          result[-1] = CharClass.new(result.last.natset + tree.natset)
         else
           result << tree
         end
-      end
+      }
 
       return EMPTY_SET if result.empty?
       return result.first if result.one?
