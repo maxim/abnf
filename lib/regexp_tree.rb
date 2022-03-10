@@ -88,11 +88,7 @@ class RegexpTree
 
     # Returns an instance of RegexpTree which only matches ((|string|)).
     def str(str)
-      ccs = []
-      str.each_byte {|ch|
-        ccs << CharClass.new(Natset[ch])
-      }
-      seq(*ccs)
+      seq(*str.each_byte.map { |ch| CharClass.new(Natset[ch]) })
     end
   end
 
