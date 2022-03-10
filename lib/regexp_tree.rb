@@ -69,14 +69,12 @@ class RegexpTree
 
     # Returns an instance of RegexpTree which is repetition of
     # ((|regexp_tree|)).
-    def rep(r, m=0, n=nil, greedy=true)
-      return EmptySequence if m == 0 && n == 0
-      return r if m == 1 && n == 1
-      return EmptySequence if r.empty_sequence?
-      if r.empty_set?
-        return m == 0 ? EmptySequence : EmptySet
-      end
-      Rep.new(r, m, n, greedy)
+    def rep(tree, min = 0, max = nil, greedy = true)
+      return EmptySequence if min == 0 && max == 0
+      return tree          if min == 1 && max == 1
+      return EmptySequence if tree.empty_sequence?
+      return (min == 0 ? EmptySequence : EmptySet) if tree.empty_set?
+      Rep.new tree, min, max, greedy
     end
 
     def charclass(natset)
@@ -187,27 +185,16 @@ class RegexpTree
   # Returns ((|n|)) times repetition of ((|self|)).
   def *(n)
     case n
-    when Integer
-      RegexpTree.rep(self, n, n)
-    when Range
-      RegexpTree.rep(self, n.first, n.last - (n.exclude_end? ? 1 : 0))
-    else
-      raise TypeError.new("Integer or Range expected: #{n}")
+    when Integer; rep(n, n)
+    when Range; rep(n.first, n.last - (n.exclude_end? ? 1 : 0))
+    else; raise TypeError.new("Integer or Range expected: #{n}")
     end
   end
 
-  def nongreedy_closure() RegexpTree.rep(self, 0, nil, false) end
-  def nongreedy_positive_closure() RegexpTree.rep(self, 1, nil, false) end
-  def nongreedy_optional() RegexpTree.rep(self, 0, 1, false) end
-  def nongreedy_ntimes(m, n=m) RegexpTree.rep(self, m, n, false) end
-  def nongreedy_rep(m=0, n=nil) RegexpTree.rep(self, m, n, false) end
-  def closure(greedy=true) RegexpTree.rep(self, 0, nil, greedy) end
-  def positive_closure(greedy=true) RegexpTree.rep(self, 1, nil, greedy) end
-  def optional(greedy=true) RegexpTree.rep(self, 0, 1, greedy) end
-  def ntimes(m, n=m, greedy=true) RegexpTree.rep(self, m, n, greedy) end
-
   # Returns ((|min|)) to ((|max|)) times repetation of ((|self|)).
-  def rep(m=0, n=nil, greedy=true) RegexpTree.rep(self, m, n, greedy) end
+  def rep(min = 0, max = nil, greedy = true)
+    RegexpTree.rep(self, min, max, greedy)
+  end
 
   def group() Paren.new(self, '') end
   def paren() Paren.new(self) end
