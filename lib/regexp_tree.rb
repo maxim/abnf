@@ -17,6 +17,9 @@ class RegexpTree
   EmptySet = Alt.new([])
   EmptySequence = Seq.new([])
 
+  STRBEG = Special.new('\A')
+  STREND = Special.new('\z')
+
   class << self
     # Returns an instance of RegexpTree which is alternation of
     # ((|regexp_trees|)).
@@ -85,16 +88,6 @@ class RegexpTree
       end
     end
 
-    def linebeg; Special.new('^') end
-    def lineend; Special.new('$') end
-    def strbeg; Special.new('\A') end
-    def strend; Special.new('\z') end
-    def strlineend; Special.new('\Z') end
-    def word_boundary; Special.new('\b') end
-    def non_word_boundary; Special.new('\B') end
-    def previous_match; Special.new('\G') end
-    def backref(n); Special.new("\\#{n}") end
-
     # def comment(str) ... end # (?#...)
 
     # Returns an instance of RegexpTree which only matches ((|string|)).
@@ -141,7 +134,7 @@ class RegexpTree
       r = self
       opt = 0
     end
-    r = RegexpTree.seq(RegexpTree.strbeg, r, RegexpTree.strend) if anchored
+    r = RegexpTree.seq(STRBEG, r, STREND) if anchored
     Regexp.compile \
       PrettyPrint.singleline_format('') { |out| r.pretty_format(out) },
       opt
