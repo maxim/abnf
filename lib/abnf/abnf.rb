@@ -1,6 +1,30 @@
 require 'tsort'
 require 'abnf/grammar'
 
+# Convert ABNF to Regexp.
+#
+# Example:
+#
+# # IPv6 [RFC2373]
+# p %r{\A#{ABNF.regexp <<'End'}\z}o =~ "FEDC:BA98:7654:3210:FEDC:BA98:7654:3210"
+#   IPv6address = hexpart [ ":" IPv4address ]
+#   IPv4address = 1*3DIGIT "." 1*3DIGIT "." 1*3DIGIT "." 1*3DIGIT
+#   hexpart = hexseq | hexseq "::" [ hexseq ] | "::" [ hexseq ]
+#   hexseq  = hex4 *( ":" hex4)
+#   hex4    = 1*4HEXDIG
+# End
+#
+# Note that this is wrong because it doesn't match "::13.1.68.3".
+#
+# # URI-reference [RFC2396]
+# p %r{\A#{ABNF.regexp <<'End'}\z}o
+#       URI-reference = [ absoluteURI | relativeURI ] [ "#" fragment ]
+#       ...
+#       digit    = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" |
+#                  "8" | "9"
+# End
+#
+# Note: Wrong ABNF description produces wrong regexp.
 class ABNF
   include TSort
 

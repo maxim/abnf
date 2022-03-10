@@ -2,13 +2,19 @@ require 'abnf/abnf'
 require 'regexp_tree'
 
 class ABNF
-  class TooComplex < StandardError
-  end
+  # A subclass of StandardError. It is raised when ABNF grammar is too complex
+  # to convert to Regexp.
+  TooComplex = Class.new(StandardError)
 
+  # Converts ((|abnf_description|)) to a Regexp object corresponding with
+  # ((|start_symbol|)). If ((|start_symbol|)) is not specified, first symbol in
+  # ((|abnf_description|)) is used.
   def ABNF.regexp(desc, name=nil)
     ABNF.regexp_tree(desc, name).regexp
   end
 
+  # Converts ((|abnf_description|)) to a ((<RegexpTree>))
+  # object corresponding with ((|start_symbol|)).
   def ABNF.regexp_tree(desc, name=nil)
     ABNF.parse(desc).regexp_tree(name)
   end
@@ -17,10 +23,9 @@ class ABNF
     regexp_tree(name).regexp
   end
 
-  # Convert a recursive rule to non-recursive rule if possible.
-  # This conversion is *not* perfect.
-  # It may fail even if possible.
-  # More work (survey) is needed.
+  # Convert a recursive rule to non-recursive rule if possible. This conversion
+  # is *not* perfect. It may fail even if possible. More work (survey) is
+  # needed.
   def regexp_tree(name=nil)
     name ||= start_symbol
     env = {}
