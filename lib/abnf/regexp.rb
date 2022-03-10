@@ -390,5 +390,5 @@ class ABNF
   class Alt; def regexp_tree() RegexpTree.alt(*@elts.map {|e| e.regexp_tree}) end end
   class Seq; def regexp_tree() RegexpTree.seq(*@elts.map {|e| e.regexp_tree}) end end
   class Rep; def regexp_tree() @elt.regexp_tree.rep(min, max, greedy) end end
-  class Term; def regexp_tree() RegexpTree.charclass(@natset) end end
+  class Term; def regexp_tree() RegexpTree.char_class(@natset) end end
 end

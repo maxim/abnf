@@ -80,12 +80,8 @@ class RegexpTree
       Rep.new tree, min, max, greedy
     end
 
-    def charclass(natset)
-      if natset.empty?
-        EmptySet
-      else
-        CharClass.new(natset)
-      end
+    def char_class(natset)
+      natset.empty? ? EmptySet : CharClass.new(natset)
     end
 
     # def comment(str) ... end # (?#...)
@@ -156,24 +152,16 @@ class RegexpTree
   end
 
   # Returns true iff self never matches.
-  def empty_set?
-    false
-  end
+  def empty_set?; false end
 
   # Returns true iff self only matches empty string.
-  def empty_sequence?
-    false
-  end
+  def empty_sequence?; false end
 
   # Returns alternation of ((|self|)) and ((|other|)).
-  def |(other)
-    RegexpTree.alt(self, other)
-  end
+  def |(other); RegexpTree.alt(self, other) end
 
   # Returns concatination of ((|self|)) and ((|other|)).
-  def +(other)
-    RegexpTree.seq(self, other)
-  end
+  def +(other); RegexpTree.seq(self, other) end
 
   # Returns ((|n|)) times repetition of ((|self|)).
   def *(n)
