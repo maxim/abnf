@@ -1,4 +1,4 @@
 require 'abnf/abnf'
 require 'abnf/parser'
-require 'abnf/corerules'
+require 'abnf/core_rules'
 require 'abnf/regexp'
