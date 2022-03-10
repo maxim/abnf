@@ -14,11 +14,10 @@ require 'regexp_tree/special'
 class RegexpTree
   PRECEDENCE = 1
 
-  EmptySet = Alt.new([])
-  EmptySequence = Seq.new([])
-
-  STRBEG = Special.new('\A')
-  STREND = Special.new('\z')
+  EMPTY_SET = Alt.new([])
+  EMPTY_SEQ = Seq.new([])
+  STR_BEG   = Special.new('\A')
+  STR_END   = Special.new('\z')
 
   class << self
     # Returns an instance of RegexpTree which is alternation of
@@ -43,7 +42,7 @@ class RegexpTree
         end
       end
 
-      return EmptySet if result.empty?
+      return EMPTY_SET if result.empty?
       return result.first if result.one?
       Alt.new(result)
     end
@@ -59,13 +58,13 @@ class RegexpTree
         if Seq === tree
           result.concat tree.rs
         elsif tree.empty_set?
-          return EmptySet
+          return EMPTY_SET
         else
           result << tree
         end
       end
 
-      return EmptySequence if result.empty?
+      return EMPTY_SEQ if result.empty?
       return result.first if result.one?
       Seq.new(result)
     end
@@ -73,15 +72,15 @@ class RegexpTree
     # Returns an instance of RegexpTree which is repetition of
     # ((|regexp_tree|)).
     def rep(tree, min = 0, max = nil, greedy = true)
-      return EmptySequence if min == 0 && max == 0
-      return tree          if min == 1 && max == 1
-      return EmptySequence if tree.empty_sequence?
-      return (min == 0 ? EmptySequence : EmptySet) if tree.empty_set?
+      return EMPTY_SEQ if min == 0 && max == 0
+      return tree      if min == 1 && max == 1
+      return EMPTY_SEQ if tree.empty_sequence?
+      return (min == 0 ? EMPTY_SEQ : EMPTY_SET) if tree.empty_set?
       Rep.new tree, min, max, greedy
     end
 
     def char_class(natset)
-      natset.empty? ? EmptySet : CharClass.new(natset)
+      natset.empty? ? EMPTY_SET : CharClass.new(natset)
     end
 
     # def comment(str) ... end # (?#...)
@@ -126,7 +125,7 @@ class RegexpTree
       r = self
       opt = 0
     end
-    r = RegexpTree.seq(STRBEG, r, STREND) if anchored
+    r = RegexpTree.seq(STR_BEG, r, STR_END) if anchored
     Regexp.compile \
       PrettyPrint.singleline_format('') { |out| r.pretty_format(out) },
       opt
