@@ -2,10 +2,23 @@ require 'tsort'
 require 'abnf/grammar'
 
 class ABNF
+  include TSort
+
+  ABNFError = Class.new(StandardError)
+
   def initialize
     @names = []
     @rules = {}
     @start = nil
+  end
+
+  def tsort_each_node(&block)
+    @names.each(&block)
+  end
+
+  def tsort_each_child(name)
+    return unless @rules.include? name
+    @rules.fetch(name).each_var { |n| yield n }
   end
 
   def start_symbol=(name)
@@ -14,7 +27,7 @@ class ABNF
 
   def start_symbol
     return @start if @start
-    raise StandardError.new("no symbol defined") if @names.empty?
+    raise StandardError, 'no symbol defined' if @names.empty?
     @names.first
   end
 
@@ -23,9 +36,9 @@ class ABNF
   end
 
   def merge(g)
-    g.each {|name, rhs|
+    g.each do |name, rhs|
       self.add(name, rhs)
-    }
+    end
   end
 
   def [](name)
@@ -51,9 +64,9 @@ class ABNF
   end
 
   def each(&block)
-    @names.each {|name|
+    @names.each do |name|
       yield name, @rules[name]
-    }
+    end
   end
 
   def delete_unreachable!(starts)
@@ -122,15 +135,4 @@ class ABNF
   class Rep; def useful?(useful_names) @min == 0 ? true : @elt.useful?(useful_names) end end
   class Var; def useful?(useful_names) useful_names[@name] end end
   class Term; def useful?(useful_names) true end end
-
-  include TSort
-  def tsort_each_node(&block)
-    @names.each(&block)
-  end
-  def tsort_each_child(name)
-    return unless @rules.include? name
-    @rules.fetch(name).each_var {|n| yield n}
-  end
-
-  class ABNFError < StandardError; end
 end
