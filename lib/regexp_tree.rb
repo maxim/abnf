@@ -20,28 +20,29 @@ class RegexpTree
   class << self
     # Returns an instance of RegexpTree which is alternation of
     # ((|regexp_trees|)).
-    def alt(*rs)
-      rs2 = []
-      rs.each {|r|
-        if r.empty_set?
-          next
-        elsif Alt === r
-          rs2.concat r.rs
-        elsif CharClass === r
-          if CharClass === rs2.last
-            rs2[-1] = CharClass.new(rs2.last.natset + r.natset)
+    def alt(*trees)
+      result = []
+
+      trees.each do |tree|
+        next if tree.empty_set?
+
+        case tree
+        when Alt
+          result.concat(tree.rs)
+        when CharClass
+          if CharClass === result.last
+            result[-1] = CharClass.new(result.last.natset + tree.natset)
           else
-            rs2 << r
+            result << tree
           end
         else
-          rs2 << r
+          result << tree
         end
-      }
-      case rs2.length
-      when 0; EmptySet
-      when 1; rs2.first
-      else; Alt.new(rs2)
       end
+
+      return EmptySet if result.empty?
+      return result.first if result.one?
+      Alt.new(result)
     end
 
     # Returns an instance of RegexpTree which is concatination of
