@@ -9,62 +9,8 @@ require 'regexp_tree/rep'
 require 'regexp_tree/seq'
 require 'regexp_tree/special'
 
-=begin
-= RegexpTree
-
-RegexpTree represents regular expression.
-It can be converted to Regexp.
-
-== class methods
---- RegexpTree.str(string)
-    returns an instance of RegexpTree which only matches ((|string|))
---- RegexpTree.alt(*regexp_trees)
-    returns an instance of RegexpTree which is alternation of ((|regexp_trees|)).
---- RegexpTree.seq(*regexp_trees)
-    returns an instance of RegexpTree which is concatination of ((|regexp_trees|)).
---- RegexpTree.rep(regexp_tree, min=0, max=nil, greedy=true)
-    returns an instance of RegexpTree which is reptation of ((|regexp_tree|)).
---- RegexpTree.charclass(natset)
-    returns an instance of RegexpTree which matches characters in ((|natset|)).
-#--- RegexpTree.linebeg
-#--- RegexpTree.lineend
-#--- RegexpTree.strbeg
-#--- RegexpTree.strend
-#--- RegexpTree.strlineend
-#--- RegexpTree.word_boundary
-#--- RegexpTree.non_word_boundary
-#--- RegexpTree.previous_match
-#--- RegexpTree.backref(n)
-
-== methods
---- regexp(anchored=false)
-    convert to Regexp.
-
-    If ((|anchored|)) is true, the Regexp is anchored by (({\A})) and (({\z})).
---- to_s
-    convert to String.
---- empty_set?
-    returns true iff self never matches. 
---- empty_sequence?
-    returns true iff self only matches empty string.
---- self | other
-    returns alternation of ((|self|)) and ((|other|)).
---- self + other
-    returns concatination of ((|self|)) and ((|other|)).
---- self * n
-    returns ((|n|)) times repetation of ((|self|)).
---- rep(min=0, max=nil, greedy=true)
-    returns ((|min|)) to ((|max|)) times repetation of ((|self|)).
-#--- closure(greedy=true)
-#--- positive_closure(greedy=true)
-#--- optional(greedy=true)
-#--- ntimes(min, max=min, greedy=true)
-#--- nongreedy_rep(min=0, max=nil)
-#--- nongreedy_closure
-#--- nongreedy_positive_closure
-#--- nongreedy_optional
-#--- nongreedy_ntimes(min, max=min)
-=end
+# RegexpTree represents regular expression.
+# It can be converted to Regexp.
 class RegexpTree
   PRECEDENCE = 1
 
@@ -72,6 +18,8 @@ class RegexpTree
   EmptySequence = Seq.new([])
 
   class << self
+    # Returns an instance of RegexpTree which is alternation of
+    # ((|regexp_trees|)).
     def alt(*rs)
       rs2 = []
       rs.each {|r|
@@ -96,6 +44,8 @@ class RegexpTree
       end
     end
 
+    # Returns an instance of RegexpTree which is concatination of
+    # ((|regexp_trees|)).
     def seq(*rs)
       rs2 = []
       rs.each {|r|
@@ -116,6 +66,8 @@ class RegexpTree
       end
     end
 
+    # Returns an instance of RegexpTree which is repetition of
+    # ((|regexp_tree|)).
     def rep(r, m=0, n=nil, greedy=true)
       return EmptySequence if m == 0 && n == 0
       return r if m == 1 && n == 1
@@ -146,6 +98,7 @@ class RegexpTree
 
     # def comment(str) ... end # (?#...)
 
+    # Returns an instance of RegexpTree which only matches ((|string|)).
     def str(str)
       ccs = []
       str.each_byte {|ch|
@@ -179,6 +132,8 @@ class RegexpTree
     end
   end
 
+  # Convert to Regexp. If ((|anchored|)) is true, the Regexp is anchored by
+  # (({\A})) and (({\z})).
   def regexp(anchored=false)
     if case_insensitive?
       r = downcase
@@ -208,22 +163,27 @@ class RegexpTree
     }
   end
 
+  # Returns true iff self never matches.
   def empty_set?
     false
   end
 
+  # Returns true iff self only matches empty string.
   def empty_sequence?
     false
   end
 
+  # Returns alternation of ((|self|)) and ((|other|)).
   def |(other)
     RegexpTree.alt(self, other)
   end
 
+  # Returns concatination of ((|self|)) and ((|other|)).
   def +(other)
     RegexpTree.seq(self, other)
   end
 
+  # Returns ((|n|)) times repetition of ((|self|)).
   def *(n)
     case n
     when Integer
@@ -244,6 +204,8 @@ class RegexpTree
   def positive_closure(greedy=true) RegexpTree.rep(self, 1, nil, greedy) end
   def optional(greedy=true) RegexpTree.rep(self, 0, 1, greedy) end
   def ntimes(m, n=m, greedy=true) RegexpTree.rep(self, m, n, greedy) end
+
+  # Returns ((|min|)) to ((|max|)) times repetation of ((|self|)).
   def rep(m=0, n=nil, greedy=true) RegexpTree.rep(self, m, n, greedy) end
 
   def group() Paren.new(self, '') end
