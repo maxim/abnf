@@ -82,38 +82,31 @@ class RegexpTree
 
   def pretty_print(pp)
     case_insensitive = case_insensitive?
-    pp.group(3, '%r{', '}x') {
+
+    pp.group(3, '%r{', '}x') do
       (case_insensitive ? self.downcase : self).pretty_format(pp)
-    }
+    end
+
     pp.text 'i' if case_insensitive
   end
 
   def inspect
     case_insensitive = case_insensitive? ? "i" : ""
-    r = PrettyPrint.singleline_format('') { |out|
+
+    regex = PrettyPrint.singleline_format('') { |out|
       (case_insensitive ? self.downcase : self).pretty_format(out)
     }
-    if %r{/} =~ r
-      "%r{#{r}}#{case_insensitive}"
-    else
-      "%r/#{r}/#{case_insensitive}"
-    end
+
+    ((%r{/} =~ regex) ? "%r{#{regex}}" : "%r/#{regex}/") + case_insensitive
   end
 
   # Convert to Regexp. If ((|anchored|)) is true, the Regexp is anchored by
   # (({\A})) and (({\z})).
-  def regexp(anchored=false)
-    if case_insensitive?
-      r = downcase
-      opt = Regexp::IGNORECASE
-    else
-      r = self
-      opt = 0
-    end
-    r = RegexpTree.seq(STR_BEG, r, STR_END) if anchored
-    Regexp.compile \
-      PrettyPrint.singleline_format('') { |out| r.pretty_format(out) },
-      opt
+  def regexp(anchored = false)
+    tree, opt = case_insensitive? ? [downcase, Regexp::IGNORECASE] : [self, 0]
+    tree = RegexpTree.seq(STR_BEG, tree, STR_END) if anchored
+    source = PrettyPrint.singleline_format('') { |out| tree.pretty_format(out) }
+    Regexp.compile(source, opt)
   end
 
   def to_s
