@@ -110,17 +110,17 @@ class RegexpTree
   end
 
   def to_s
-    PrettyPrint.singleline_format('') {|out|
+    PrettyPrint.singleline_format('') { |out|
       # x flag is not required because all whitespaces are escaped.
       if case_insensitive?
         out.text '(?i-m:'
         downcase.pretty_format(out)
-        out.text ')'
       else
         out.text '(?-im:'
         pretty_format(out)
-        out.text ')'
       end
+
+      out.text ')'
     }
   end
 
