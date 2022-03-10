@@ -47,24 +47,24 @@ class RegexpTree
 
     # Returns an instance of RegexpTree which is concatination of
     # ((|regexp_trees|)).
-    def seq(*rs)
-      rs2 = []
-      rs.each {|r|
-        if r.empty_sequence?
-          next
-        elsif Seq === r
-          rs2.concat r.rs
-        elsif r.empty_set?
+    def seq(*trees)
+      result = []
+
+      trees.each do |tree|
+        next if tree.empty_sequence?
+
+        if Seq === tree
+          result.concat tree.rs
+        elsif tree.empty_set?
           return EmptySet
         else
-          rs2 << r
+          result << tree
         end
-      }
-      case rs2.length
-      when 0; EmptySequence
-      when 1; rs2.first
-      else; Seq.new(rs2)
       end
+
+      return EmptySequence if result.empty?
+      return result.first if result.one?
+      Seq.new(result)
     end
 
     # Returns an instance of RegexpTree which is repetition of
