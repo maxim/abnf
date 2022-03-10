@@ -166,6 +166,8 @@ class Natset
 
   private
 
+  # Take all numbers and ranges, normalize each, remove any duplicate values,
+  # and join any consecutive numbers or ranges into non-overlapping ranges.
   def validate_sort_and_concat(*values)
     return values if values.empty?
 
@@ -185,6 +187,9 @@ class Natset
       }
   end
 
+  # Take each value (whether integer or range), validate it, and convert it into
+  # the properly formatted range, where end is included, and `nil` beginning is
+  # replaced with 0.
   def validate_rangify_and_cap(val)
     return validate_rangify_and_cap(val..val) if Integer === val
     bad_value!(val) unless Range === val
