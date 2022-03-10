@@ -172,9 +172,4 @@ class RegexpTree
   def rep(min = 0, max = nil, greedy = true)
     RegexpTree.rep(self, min, max, greedy)
   end
-
-  def group() Paren.new(self, '') end
-  def paren() Paren.new(self) end
-  def lookahead() Paren.new(self, '?=') end
-  def negative_lookahead() Paren.new(self, '?!') end
 end
