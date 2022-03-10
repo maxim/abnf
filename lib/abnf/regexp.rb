@@ -27,131 +27,131 @@ class ABNF
     each_strongly_connected_component_from(name) {|ns|
       rules = {}
       ns.each {|n|
-	rules[n] = @rules[n]
+        rules[n] = @rules[n]
       }
 
       resolved_rules = {}
       updated = true
       while updated
-	updated = false
-	ns.reject! {|n| !rules.include?(n)}
+        updated = false
+        ns.reject! {|n| !rules.include?(n)}
 
-	rs = {}
-	ns.reverse_each {|n|
-	  e = rules[n]
+        rs = {}
+        ns.reverse_each {|n|
+          e = rules[n]
           if !e
             raise ABNFError.new("no rule defined: #{n}")
           end
-	  rs[n] = e.recursion(ns, n)
-	  if rs[n] & OtherRecursion != 0
-	    raise TooComplex.new("too complex to convert to regexp: #{n} (#{ns.join(', ')})")
-	  end
-	}
+          rs[n] = e.recursion(ns, n)
+          if rs[n] & OtherRecursion != 0
+            raise TooComplex.new("too complex to convert to regexp: #{n} (#{ns.join(', ')})")
+          end
+        }
 
-	ns.reverse_each {|n|
-	  e = rules[n]
-	  r = rs[n]
-	  if r & SelfRecursion == 0
-	    resolved_rules[n] = e
-	    rules.delete n
-	    rules.each {|n2, e2| rules[n2] = e2.subst_var {|n3| n3 == n ? e : nil}}
-	    updated = true
-	    break
-	  end
-	}
-	next if updated
+        ns.reverse_each {|n|
+          e = rules[n]
+          r = rs[n]
+          if r & SelfRecursion == 0
+            resolved_rules[n] = e
+            rules.delete n
+            rules.each {|n2, e2| rules[n2] = e2.subst_var {|n3| n3 == n ? e : nil}}
+            updated = true
+            break
+          end
+        }
+        next if updated
 
-	# X = Y | a
-	# Y = X | b
-	# => 
-	# Y = Y | a | b
-	ns.reverse_each {|n|
-	  e = rules[n]
-	  r = rs[n]
-	  if r & JustRecursion != 0 && r & ~(NonRecursion|JustRecursion) == 0
-	    e = e.remove_just_recursion(n)
-	    resolved_rules[n] = e
-	    rules.delete n
-	    rules.each {|n2, e2| rules[n2] = e2.subst_var {|n3| n3 == n ? e : nil}}
-	    updated = true
-	    break
-	  end
-	}
-	next if updated
+        # X = Y | a
+        # Y = X | b
+        # =>
+        # Y = Y | a | b
+        ns.reverse_each {|n|
+          e = rules[n]
+          r = rs[n]
+          if r & JustRecursion != 0 && r & ~(NonRecursion|JustRecursion) == 0
+            e = e.remove_just_recursion(n)
+            resolved_rules[n] = e
+            rules.delete n
+            rules.each {|n2, e2| rules[n2] = e2.subst_var {|n3| n3 == n ? e : nil}}
+            updated = true
+            break
+          end
+        }
+        next if updated
 
-	# X = X a | b
-	# =>
-	# X = b a*
-	ns.reverse_each {|n|
-	  e = rules[n]
-	  r = rs[n]
-	  if r & LeftRecursion != 0 && r & ~(NonRecursion|JustRecursion|LeftRecursion|SelfRecursion) == 0
-	    e = e.remove_left_recursion(n)
-	    resolved_rules[n] = e
-	    rules.delete n
-	    rules.each {|n2, e2| rules[n2] = e2.subst_var {|n3| n3 == n ? e : nil}}
-	    updated = true
-	    break
-	  end
-	}
-	next if updated
+        # X = X a | b
+        # =>
+        # X = b a*
+        ns.reverse_each {|n|
+          e = rules[n]
+          r = rs[n]
+          if r & LeftRecursion != 0 && r & ~(NonRecursion|JustRecursion|LeftRecursion|SelfRecursion) == 0
+            e = e.remove_left_recursion(n)
+            resolved_rules[n] = e
+            rules.delete n
+            rules.each {|n2, e2| rules[n2] = e2.subst_var {|n3| n3 == n ? e : nil}}
+            updated = true
+            break
+          end
+        }
+        next if updated
 
-	# X = a X | b
-	# =>
-	# X = a* b
-	ns.reverse_each {|n|
-	  e = rules[n]
-	  r = rs[n]
-	  if r & RightRecursion != 0 && r & ~(NonRecursion|JustRecursion|RightRecursion|SelfRecursion) == 0
-	    e = e.remove_right_recursion(n)
-	    resolved_rules[n] = e
-	    rules.delete n
-	    rules.each {|n2, e2| rules[n2] = e2.subst_var {|n3| n3 == n ? e : nil}}
-	    updated = true
-	    break
-	  end
-	}
-	next if updated
+        # X = a X | b
+        # =>
+        # X = a* b
+        ns.reverse_each {|n|
+          e = rules[n]
+          r = rs[n]
+          if r & RightRecursion != 0 && r & ~(NonRecursion|JustRecursion|RightRecursion|SelfRecursion) == 0
+            e = e.remove_right_recursion(n)
+            resolved_rules[n] = e
+            rules.delete n
+            rules.each {|n2, e2| rules[n2] = e2.subst_var {|n3| n3 == n ? e : nil}}
+            updated = true
+            break
+          end
+        }
+        next if updated
       end
 
       if 1 < rules.length
-	raise TooComplex.new("too complex to convert to regexp: (#{ns.join(', ')})")
+        raise TooComplex.new("too complex to convert to regexp: (#{ns.join(', ')})")
       end
 
       if rules.length == 1
-	n, e = rules.shift
-	r = e.recursion(ns, n)
-	if r & OtherRecursion != 0
-	  raise TooComplex.new("too complex to convert to regexp: #{n} (#{ns.join(', ')})")
-	end
-	if r == NonRecursion
-	  resolved_rules[n] = e
-	else
-	  # X = a X | b | X c
-	  # =>
-	  # X = a* b c*
-	  left, middle, right = e.split_recursion(n)
-	  resolved_rules[n] = Seq.new(Alt.new(left).rep, Alt.new(middle), Alt.new(right).rep)
-	end
+        n, e = rules.shift
+        r = e.recursion(ns, n)
+        if r & OtherRecursion != 0
+          raise TooComplex.new("too complex to convert to regexp: #{n} (#{ns.join(', ')})")
+        end
+        if r == NonRecursion
+          resolved_rules[n] = e
+        else
+          # X = a X | b | X c
+          # =>
+          # X = a* b c*
+          left, middle, right = e.split_recursion(n)
+          resolved_rules[n] = Seq.new(Alt.new(left).rep, Alt.new(middle), Alt.new(right).rep)
+        end
       end
 
       class << resolved_rules
         include TSort
-	alias tsort_each_node each_key
-	def tsort_each_child(n, &block)
-	  self[n].each_var {|n2|
-	    yield n2 if self.include? n2
-	  }
-	end
+        alias tsort_each_node each_key
+        def tsort_each_child(n, &block)
+          self[n].each_var {|n2|
+            yield n2 if self.include? n2
+          }
+        end
       end
 
       resolved_rules.tsort_each {|n|
         env[n] = resolved_rules[n].subst_var {|n2|
-	  unless env[n2]
-	    raise Exception.new("unresolved nonterminal: #{n}") # bug
-	  end
-	  env[n2]
-	}
+          unless env[n2]
+            raise Exception.new("unresolved nonterminal: #{n}") # bug
+          end
+          env[n2]
+        }
       }
     }
     env[name].regexp_tree
@@ -190,8 +190,8 @@ class ABNF
       rest = EmptySet
       @elts.each {|e|
         nonrec1, rest1 = e.split_left_recursion(n)
-	nonrec |= nonrec1
-	rest |= rest1
+        nonrec |= nonrec1
+        rest |= rest1
       }
       [nonrec, rest]
     end
@@ -201,8 +201,8 @@ class ABNF
       rest = EmptySet
       @elts.each {|e|
         nonrec1, rest1 = e.split_right_recursion(n)
-	nonrec |= nonrec1
-	rest |= rest1
+        nonrec |= nonrec1
+        rest |= rest1
       }
       [nonrec, rest]
     end
@@ -213,9 +213,9 @@ class ABNF
       rest_right = EmptySet
       @elts.each {|e|
         rest_left1, nonrec1, rest_right1 = e.split_recursion(n)
-	rest_left |= rest_left1
-	nonrec |= nonrec1
-	rest_right |= rest_right1
+        rest_left |= rest_left1
+        nonrec |= nonrec1
+        rest_right |= rest_right1
       }
       [rest_left, nonrec, rest_right]
     end
@@ -229,25 +229,25 @@ class ABNF
       when 1
         @elts.first.recursion(syms, lhs)  
       else
-	(1...(@elts.length-1)).each {|i|
-	  return OtherRecursion if @elts[i].recursion(syms, lhs) != NonRecursion
-	}
+        (1...(@elts.length-1)).each {|i|
+          return OtherRecursion if @elts[i].recursion(syms, lhs) != NonRecursion
+        }
 
         r_left = @elts.first.recursion(syms, lhs)
-	return OtherRecursion if r_left & ~(NonRecursion|JustRecursion|LeftRecursion|SelfRecursion) != 0
-	r_left = (r_left & ~JustRecursion) | LeftRecursion if r_left & JustRecursion != 0
+        return OtherRecursion if r_left & ~(NonRecursion|JustRecursion|LeftRecursion|SelfRecursion) != 0
+        r_left = (r_left & ~JustRecursion) | LeftRecursion if r_left & JustRecursion != 0
 
         r_right = @elts.last.recursion(syms, lhs)
-	return OtherRecursion if r_right & ~(NonRecursion|JustRecursion|RightRecursion|SelfRecursion) != 0
-	r_right = (r_right & ~JustRecursion) | RightRecursion if r_right & JustRecursion != 0
+        return OtherRecursion if r_right & ~(NonRecursion|JustRecursion|RightRecursion|SelfRecursion) != 0
+        r_right = (r_right & ~JustRecursion) | RightRecursion if r_right & JustRecursion != 0
 
-	if r_left == NonRecursion
-	  r_right
-	elsif r_right == NonRecursion
-	  r_left
-	else
-	  OtherRecursion
-	end
+        if r_left == NonRecursion
+          r_right
+        elsif r_right == NonRecursion
+          r_left
+        else
+          OtherRecursion
+        end
       end
     end
 
@@ -263,10 +263,10 @@ class ABNF
         @elts.first.split_left_recursion(n)
       else
         nonrec, rest = @elts.first.split_left_recursion(n)
-	rest1 = Seq.new(*@elts[1..-1])
-	nonrec += rest1
-	rest += rest1
-	[nonrec, rest]
+        rest1 = Seq.new(*@elts[1..-1])
+        nonrec += rest1
+        rest += rest1
+        [nonrec, rest]
       end
     end
 
@@ -278,10 +278,10 @@ class ABNF
         @elts.first.split_right_recursion(n)
       else
         nonrec, rest = @elts.last.split_right_recursion(n)
-	rest1 = Seq.new(*@elts[0...-1])
-	nonrec = rest1 + nonrec
-	rest = rest1 + rest
-	[nonrec, rest]
+        rest1 = Seq.new(*@elts[0...-1])
+        nonrec = rest1 + nonrec
+        rest = rest1 + rest
+        [nonrec, rest]
       end
     end
 
@@ -294,19 +294,19 @@ class ABNF
       else
         leftmost_nonrec, leftmost_rest_right = @elts.first.split_left_recursion(n)
         rightmost_nonrec, rightmost_rest_left = @elts.last.split_right_recursion(n)
-	rest_middle = Seq.new(*@elts[1...-1])
+        rest_middle = Seq.new(*@elts[1...-1])
 
-	if leftmost_rest_right.empty_set?
-	  [leftmost_nonrec + rest_middle + rightmost_rest_left,
-	   leftmost_nonrec + rest_middle + rightmost_nonrec,
-	   EmptySet]
-	elsif rightmost_rest_left.empty_set?
-	  [EmptySet,
-	   leftmost_nonrec + rest_middle + rightmost_nonrec,
-	   leftmost_rest_right + rest_middle + rightmost_nonrec]
-	else
-	  raise Exception.new("non left/right recursion") # bug
-	end
+        if leftmost_rest_right.empty_set?
+          [leftmost_nonrec + rest_middle + rightmost_rest_left,
+           leftmost_nonrec + rest_middle + rightmost_nonrec,
+           EmptySet]
+        elsif rightmost_rest_left.empty_set?
+          [EmptySet,
+           leftmost_nonrec + rest_middle + rightmost_nonrec,
+           leftmost_rest_right + rest_middle + rightmost_nonrec]
+        else
+          raise Exception.new("non left/right recursion") # bug
+        end
       end
     end
 
@@ -353,9 +353,9 @@ class ABNF
   class Var
     def recursion(syms, lhs)
       if lhs == self.name
-	JustRecursion | SelfRecursion
+        JustRecursion | SelfRecursion
       elsif syms.include? self.name
-	JustRecursion
+        JustRecursion
       else
         NonRecursion
       end
@@ -365,24 +365,24 @@ class ABNF
       if n == self.name
         EmptySet
       else
-	self
+        self
       end
     end
 
     def split_left_recursion(n)
       if n == self.name
-	[EmptySet, EmptySequence]
+        [EmptySet, EmptySequence]
       else
-	[self, EmptySet]
+        [self, EmptySet]
       end
     end
     alias split_right_recursion split_left_recursion
 
     def split_recursion(n)
       if n == self.name
-	[EmptySet, EmptySet, EmptySet]
+        [EmptySet, EmptySet, EmptySet]
       else
-	[EmptySet, self, EmptySet]
+        [EmptySet, self, EmptySet]
       end
     end
   end
