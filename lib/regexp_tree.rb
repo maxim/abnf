@@ -68,6 +68,90 @@ It can be converted to Regexp.
 class RegexpTree
   PRECEDENCE = 1
 
+  class << self
+    def alt(*rs)
+      rs2 = []
+      rs.each {|r|
+        if r.empty_set?
+          next
+        elsif Alt === r
+          rs2.concat r.rs
+        elsif CharClass === r
+          if CharClass === rs2.last
+            rs2[-1] = CharClass.new(rs2.last.natset + r.natset)
+          else
+            rs2 << r
+          end
+        else
+          rs2 << r
+        end
+      }
+      case rs2.length
+      when 0; EmptySet
+      when 1; rs2.first
+      else; Alt.new(rs2)
+      end
+    end
+
+    def seq(*rs)
+      rs2 = []
+      rs.each {|r|
+        if r.empty_sequence?
+          next
+        elsif Seq === r
+          rs2.concat r.rs
+        elsif r.empty_set?
+          return EmptySet
+        else
+          rs2 << r
+        end
+      }
+      case rs2.length
+      when 0; EmptySequence
+      when 1; rs2.first
+      else; Seq.new(rs2)
+      end
+    end
+
+    def rep(r, m=0, n=nil, greedy=true)
+      return EmptySequence if m == 0 && n == 0
+      return r if m == 1 && n == 1
+      return EmptySequence if r.empty_sequence?
+      if r.empty_set?
+        return m == 0 ? EmptySequence : EmptySet
+      end
+      Rep.new(r, m, n, greedy)
+    end
+
+    def charclass(natset)
+      if natset.empty?
+        EmptySet
+      else
+        CharClass.new(natset)
+      end
+    end
+
+    def linebeg; Special.new('^') end
+    def lineend; Special.new('$') end
+    def strbeg; Special.new('\A') end
+    def strend; Special.new('\z') end
+    def strlineend; Special.new('\Z') end
+    def word_boundary; Special.new('\b') end
+    def non_word_boundary; Special.new('\B') end
+    def previous_match; Special.new('\G') end
+    def backref(n); Special.new("\\#{n}") end
+
+    # def comment(str) ... end # (?#...)
+
+    def str(str)
+      ccs = []
+      str.each_byte {|ch|
+        ccs << CharClass.new(Natset[ch])
+      }
+      seq(*ccs)
+    end
+  end
+
   def parenthesize(target)
     target::PRECEDENCE <= self.class::PRECEDENCE ? self : Paren.new(self)
   end
@@ -132,54 +216,11 @@ class RegexpTree
   def |(other)
     RegexpTree.alt(self, other)
   end
-  def RegexpTree.alt(*rs)
-    rs2 = []
-    rs.each {|r|
-      if r.empty_set?
-        next
-      elsif Alt === r
-        rs2.concat r.rs
-      elsif CharClass === r
-        if CharClass === rs2.last
-          rs2[-1] = CharClass.new(rs2.last.natset + r.natset)
-        else
-          rs2 << r
-        end
-      else
-        rs2 << r
-      end
-    }
-    case rs2.length
-    when 0; EmptySet
-    when 1; rs2.first
-    else; Alt.new(rs2)
-    end
-  end
-
 
   EmptySet = Alt.new([])
 
   def +(other)
     RegexpTree.seq(self, other)
-  end
-  def RegexpTree.seq(*rs)
-    rs2 = []
-    rs.each {|r|
-      if r.empty_sequence?
-        next
-      elsif Seq === r
-        rs2.concat r.rs
-      elsif r.empty_set?
-        return EmptySet
-      else
-        rs2 << r
-      end
-    }
-    case rs2.length
-    when 0; EmptySequence
-    when 1; rs2.first
-    else; Seq.new(rs2)
-    end
   end
 
   EmptySequence = Seq.new([])
@@ -194,6 +235,7 @@ class RegexpTree
       raise TypeError.new("Integer or Range expected: #{n}")
     end
   end
+
   def nongreedy_closure() RegexpTree.rep(self, 0, nil, false) end
   def nongreedy_positive_closure() RegexpTree.rep(self, 1, nil, false) end
   def nongreedy_optional() RegexpTree.rep(self, 0, 1, false) end
@@ -205,46 +247,8 @@ class RegexpTree
   def ntimes(m, n=m, greedy=true) RegexpTree.rep(self, m, n, greedy) end
   def rep(m=0, n=nil, greedy=true) RegexpTree.rep(self, m, n, greedy) end
 
-  def RegexpTree.rep(r, m=0, n=nil, greedy=true)
-    return EmptySequence if m == 0 && n == 0
-    return r if m == 1 && n == 1
-    return EmptySequence if r.empty_sequence?
-    if r.empty_set?
-      return m == 0 ? EmptySequence : EmptySet
-    end
-    Rep.new(r, m, n, greedy)
-  end
-
-  def RegexpTree.charclass(natset)
-    if natset.empty?
-      EmptySet
-    else
-      CharClass.new(natset)
-    end
-  end
-
-  def RegexpTree.linebeg() Special.new('^') end
-  def RegexpTree.lineend() Special.new('$') end
-  def RegexpTree.strbeg() Special.new('\A') end
-  def RegexpTree.strend() Special.new('\z') end
-  def RegexpTree.strlineend() Special.new('\Z') end
-  def RegexpTree.word_boundary() Special.new('\b') end
-  def RegexpTree.non_word_boundary() Special.new('\B') end
-  def RegexpTree.previous_match() Special.new('\G') end
-  def RegexpTree.backref(n) Special.new("\\#{n}") end
-
   def group() Paren.new(self, '') end
   def paren() Paren.new(self) end
   def lookahead() Paren.new(self, '?=') end
   def negative_lookahead() Paren.new(self, '?!') end
-
-  # def RegexpTree.comment(str) ... end # (?#...)
-
-  def RegexpTree.str(str)
-    ccs = []
-    str.each_byte {|ch|
-      ccs << CharClass.new(Natset[ch])
-    }
-    seq(*ccs)
-  end
 end
