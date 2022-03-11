@@ -24,6 +24,10 @@ class ABNF
       @natset.empty?
     end
 
+    def useful?(_)
+      true
+    end
+
     def each_var(&block) end
     def subst_var(&block) self end
   end

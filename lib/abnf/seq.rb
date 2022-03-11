@@ -35,6 +35,10 @@ class ABNF
       @elts.empty?
     end
 
+    def useful?(useful_names)
+      @elts.all? { |e| e.useful?(useful_names) }
+    end
+
     def each_var(&block) @elts.each {|elt| elt.each_var(&block)} end
     def subst_var(&block) Seq.new(*@elts.map {|elt| elt.subst_var(&block)}) end
   end

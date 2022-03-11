@@ -153,10 +153,4 @@ class ABNF
     @names.reject! {|name| !@rules.include?(name)}
     self
   end
-
-  class Alt; def useful?(useful_names) @elts.any? {|e| e.useful?(useful_names)} end end
-  class Seq; def useful?(useful_names) @elts.all? {|e| e.useful?(useful_names)} end end
-  class Rep; def useful?(useful_names) @min == 0 ? true : @elt.useful?(useful_names) end end
-  class Var; def useful?(useful_names) useful_names[@name] end end
-  class Term; def useful?(useful_names) true end end
 end

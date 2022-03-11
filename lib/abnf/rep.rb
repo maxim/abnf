@@ -24,6 +24,10 @@ class ABNF
     end
     attr_reader :elt, :min, :max, :greedy
 
+    def useful?(useful_names)
+      @min == 0 ? true : @elt.useful?(useful_names)
+    end
+
     def each_var(&block) @elt.each_var(&block) end
     def subst_var(&block) Rep.new(@elt.subst_var(&block), min, max, greedy) end
   end

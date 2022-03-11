@@ -34,6 +34,10 @@ class ABNF
       @elts.empty?
     end
 
+    def useful?(useful_names)
+      @elts.any? { |e| e.useful?(useful_names) }
+    end
+
     def each_var(&block) @elts.each {|elt| elt.each_var(&block)} end
     def subst_var(&block)
       self.class.from_elements(*@elts.map {|elt| elt.subst_var(&block)})
