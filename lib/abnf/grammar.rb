@@ -1,10 +1,10 @@
-require 'abnf/alt'
-require 'abnf/rep'
-require 'abnf/seq'
-require 'abnf/term'
-require 'abnf/var'
+require 'abnf/elements/alt'
+require 'abnf/elements/rep'
+require 'abnf/elements/seq'
+require 'abnf/elements/term'
+require 'abnf/elements/var'
 
 class ABNF
   EmptySet = Alt.new
-  EmptySequence = Seq._new
+  EmptySeq = Seq._new
 end

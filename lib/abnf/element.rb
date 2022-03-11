@@ -1,5 +1,5 @@
 class ABNF
-  class Elt
+  class Element
     # A variable is assumed as not empty set.
     def empty_set?
       false

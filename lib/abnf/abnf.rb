@@ -61,7 +61,7 @@ class ABNF
 
   def merge(g)
     g.each do |name, rhs|
-      self.add(name, rhs)
+      add(name, rhs)
     end
   end
 

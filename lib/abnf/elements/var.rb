@@ -1,7 +1,7 @@
-require 'abnf/elt'
+require 'abnf/element'
 
 class ABNF
-  class Var < Elt
+  class Var < Element
     def initialize(name)
       @name = name
     end

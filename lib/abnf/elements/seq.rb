@@ -1,7 +1,7 @@
-require 'abnf/elt'
+require 'abnf/element'
 
 class ABNF
-  class Seq < Elt
+  class Seq < Element
     class << Seq
       alias _new new
     end
@@ -20,7 +20,7 @@ class ABNF
         end
       }
       case elts2.length
-      when 0; EmptySequence
+      when 0; EmptySeq
       when 1; elts2.first
       else; Seq._new(*elts2)
       end

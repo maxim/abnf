@@ -173,7 +173,7 @@ class ABNF
   SelfRecursion = 16	# Y is X in JustRecursion, LeftRecursion and RightRecursion
   OtherRecursion = 32	# otherwise
 
-  class Elt
+  class Element
     def remove_left_recursion(n)
       nonrec, rest = split_left_recursion(n)
       Seq.new(nonrec, rest.rep)
@@ -380,7 +380,7 @@ class ABNF
 
     def split_left_recursion(n)
       if n == self.name
-        [EmptySet, EmptySequence]
+        [EmptySet, EmptySeq]
       else
         [self, EmptySet]
       end

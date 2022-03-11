@@ -1,17 +1,17 @@
-require 'abnf/elt'
+require 'abnf/element'
 
 class ABNF
-  class Rep < Elt
+  class Rep < Element
     class << Rep
       alias _new new
     end
 
     def Rep.new(elt, min=0, max=nil, greedy=true)
-      return EmptySequence if min == 0 && max == 0
+      return EmptySeq if min == 0 && max == 0
       return elt if min == 1 && max == 1
-      return EmptySequence if elt.empty_sequence?
+      return EmptySeq if elt.empty_sequence?
       if elt.empty_set?
-        return min == 0 ? EmptySequence : EmptySet
+        return min == 0 ? EmptySeq : EmptySet
       end
       Rep._new(elt, min, max, greedy)
     end

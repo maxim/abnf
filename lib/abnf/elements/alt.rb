@@ -1,7 +1,7 @@
-require 'abnf/elt'
+require 'abnf/element'
 
 class ABNF
-  class Alt < Elt
+  class Alt < Element
     attr_reader :elts
 
     class << self

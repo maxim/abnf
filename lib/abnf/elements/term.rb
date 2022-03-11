@@ -1,8 +1,8 @@
-require 'abnf/elt'
+require 'abnf/element'
 require 'natset'
 
 class ABNF
-  class Term < Elt
+  class Term < Element
     attr_reader :natset
 
     def initialize(natset)
