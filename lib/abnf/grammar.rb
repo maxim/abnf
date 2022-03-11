@@ -5,6 +5,6 @@ require 'abnf/term'
 require 'abnf/var'
 
 class ABNF
-  EmptySet = Alt._new
+  EmptySet = Alt.new
   EmptySequence = Seq._new
 end

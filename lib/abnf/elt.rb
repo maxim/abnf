@@ -15,7 +15,7 @@ class ABNF
     end
 
     def |(other)
-      Alt.new(self, other)
+      Alt.from_elements(self, other)
     end
 
     def *(n)

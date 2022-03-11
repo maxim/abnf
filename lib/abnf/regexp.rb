@@ -136,7 +136,11 @@ class ABNF
           # =>
           # X = a* b c*
           left, middle, right = e.split_recursion(n)
-          resolved_rules[n] = Seq.new(Alt.new(left).rep, Alt.new(middle), Alt.new(right).rep)
+          resolved_rules[n] = Seq.new(
+            Alt.from_elements(left).rep,
+            Alt.from_elements(middle),
+            Alt.from_elements(right).rep
+          )
         end
       end
 
@@ -187,7 +191,7 @@ class ABNF
     end
 
     def remove_just_recursion(n)
-      Alt.new(*@elts.map {|e| e.remove_just_recursion(n)})
+      Alt.from_elements(*@elts.map {|e| e.remove_just_recursion(n)})
     end
 
     def split_left_recursion(n)
