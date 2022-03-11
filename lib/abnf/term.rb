@@ -3,22 +3,11 @@ require 'natset'
 
 class ABNF
   class Term < Elt
-    class << Term
-      alias _new new
-    end
-
-    def Term.new(natset)
-      if natset.empty?
-        EmptySet
-      else
-        Term._new(natset)
-      end
-    end
+    attr_reader :natset
 
     def initialize(natset)
-      @natset = natset
+      @natset = natset.empty? ? EmptySet : natset
     end
-    attr_reader :natset
 
     def empty_set?
       @natset.empty?
