@@ -165,18 +165,18 @@ class ABNF
     useful_names = {}
     using_names = {}
 
-    @rules.each {|name, rhs|
+    @rules.each do |name, rhs|
       useful_names[name] = true if rhs.useful?(useful_names)
       rhs.each_var {|n|
         (using_names[n] ||= {})[name] = true
       }
-    }
+    end
 
     queue = useful_names.keys
     until queue.empty?
       n = queue.pop
       next unless using_names[n]
-      using_names[n].keys.each {|name|
+      using_names[n].keys.each do |name|
         if useful_names[name]
           using_names[n].delete name
         elsif @rules[name].useful?(useful_names)
@@ -184,14 +184,14 @@ class ABNF
           useful_names[name] = true
           queue << name
         end
-      }
+      end
     end
 
     rules = {}
-    @rules.each {|name, rhs|
+    @rules.each do |name, rhs|
       rhs = rhs.subst_var {|n| useful_names[n] ? nil : EmptySet}
       rules[name] = rhs unless rhs.empty_set?
-    }
+    end
 
     #xxx: raise if some of start symbol becomes empty set?
 
@@ -200,43 +200,41 @@ class ABNF
     self
   end
 
-  def regexp(name=start_symbol)
+  def regexp(name = start_symbol)
     regexp_tree(name).regexp
   end
 
   # Convert a recursive rule to non-recursive rule if possible. This conversion
   # is *not* perfect. It may fail even if possible. More work (survey) is
   # needed.
-  def regexp_tree(name=nil)
+  def regexp_tree(name = nil)
     name ||= start_symbol
     env = {}
-    each_strongly_connected_component_from(name) {|ns|
-      rules = {}
-      ns.each {|n|
-        rules[n] = @rules[n]
-      }
 
+    each_strongly_connected_component_from(name) do |names|
+      rules = names.each_with_object({}) { |n, rules| rules[n] = @rules[n] }
       resolved_rules = {}
       updated = true
+
       while updated
         updated = false
-        ns.reject! {|n| !rules.include?(n)}
+        names.reject! { |n| !rules.include?(n) }
+        recursions = {}
 
-        rs = {}
-        ns.reverse_each {|n|
-          e = rules[n]
-          if !e
-            raise ABNFError.new("no rule defined: #{n}")
-          end
-          rs[n] = e.recursion(ns, n)
-          if rs[n] & OtherRecursion != 0
-            raise TooComplex.new("too complex to convert to regexp: #{n} (#{ns.join(', ')})")
-          end
-        }
+        names.reverse_each do |n|
+          rule = rules[n]
+          raise ABNFError.new("no rule defined: #{n}") unless rule
 
-        ns.reverse_each {|n|
+          recursions[n] = rule.recursion(names, n)
+
+          if recursions[n] & OtherRecursion != 0
+            raise TooComplex.new("too complex to convert to regexp: #{n} (#{names.join(', ')})")
+          end
+        end
+
+        names.reverse_each {|n|
           e = rules[n]
-          r = rs[n]
+          r = recursions[n]
           if r & SelfRecursion == 0
             resolved_rules[n] = e
             rules.delete n
@@ -251,9 +249,9 @@ class ABNF
         # Y = X | b
         # =>
         # Y = Y | a | b
-        ns.reverse_each {|n|
+        names.reverse_each {|n|
           e = rules[n]
-          r = rs[n]
+          r = recursions[n]
           if r & JustRecursion != 0 && r & ~(NonRecursion|JustRecursion) == 0
             e = e.remove_just_recursion(n)
             resolved_rules[n] = e
@@ -268,9 +266,9 @@ class ABNF
         # X = X a | b
         # =>
         # X = b a*
-        ns.reverse_each {|n|
+        names.reverse_each {|n|
           e = rules[n]
-          r = rs[n]
+          r = recursions[n]
           if r & LeftRecursion != 0 && r & ~(NonRecursion|JustRecursion|LeftRecursion|SelfRecursion) == 0
             e = e.remove_left_recursion(n)
             resolved_rules[n] = e
@@ -285,9 +283,9 @@ class ABNF
         # X = a X | b
         # =>
         # X = a* b
-        ns.reverse_each {|n|
+        names.reverse_each {|n|
           e = rules[n]
-          r = rs[n]
+          r = recursions[n]
           if r & RightRecursion != 0 && r & ~(NonRecursion|JustRecursion|RightRecursion|SelfRecursion) == 0
             e = e.remove_right_recursion(n)
             resolved_rules[n] = e
@@ -301,14 +299,14 @@ class ABNF
       end
 
       if 1 < rules.length
-        raise TooComplex.new("too complex to convert to regexp: (#{ns.join(', ')})")
+        raise TooComplex.new("too complex to convert to regexp: (#{names.join(', ')})")
       end
 
       if rules.length == 1
         n, e = rules.shift
-        r = e.recursion(ns, n)
+        r = e.recursion(names, n)
         if r & OtherRecursion != 0
-          raise TooComplex.new("too complex to convert to regexp: #{n} (#{ns.join(', ')})")
+          raise TooComplex.new("too complex to convert to regexp: #{n} (#{names.join(', ')})")
         end
         if r == NonRecursion
           resolved_rules[n] = e
@@ -339,7 +337,8 @@ class ABNF
           env[n2]
         }
       }
-    }
+    end
+
     env[name].regexp_tree
   end
 end
