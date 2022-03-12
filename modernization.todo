@@ -1,0 +1,2 @@
+ ☐ Remove rdoc (()) interpolations from docs.
+ ☐ In term.rb EmptySet is assigned outside, and seems unrelated to Term.
