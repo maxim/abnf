@@ -46,7 +46,7 @@ class ABNF
       Seq[*@elts.map {|elt| elt.subst_var(&block)}]
     end
 
-    def regexp_tree; RegexpTree.seq(*@elts.map {|e| e.regexp_tree}) end
+    def regexp_tree; RegexpTree.seq(*@elts.map(&:regexp_tree)) end
 
     def recursion(syms, lhs)
       case @elts.length
