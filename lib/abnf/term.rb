@@ -5,8 +5,16 @@ class ABNF
   class Term < Element
     attr_reader :natset
 
+    class << self
+      alias _new new
+      def new(natset)
+        return EmptySet if natset.empty?
+        _new(natset)
+      end
+    end
+
     def initialize(natset)
-      @natset = natset.empty? ? EmptySet : natset
+      @natset = natset
     end
 
     def empty_set?
