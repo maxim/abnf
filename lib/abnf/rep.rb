@@ -2,18 +2,21 @@ require 'abnf/element'
 
 class ABNF
   class Rep < Element
-    class << Rep
-      alias _new new
-    end
+    attr_reader :elt, :min, :max, :greedy
 
-    def Rep.new(elt, min=0, max=nil, greedy=true)
-      return EmptySeq if min == 0 && max == 0
-      return elt if min == 1 && max == 1
-      return EmptySeq if elt.empty_sequence?
-      if elt.empty_set?
-        return min == 0 ? EmptySeq : EmptySet
+    class << self
+      alias _new new
+      def new(elt, min=0, max=nil, greedy=true)
+        return EmptySeq if min == 0 && max == 0
+        return elt if min == 1 && max == 1
+        return EmptySeq if elt.empty_sequence?
+
+        if elt.empty_set?
+          return min == 0 ? EmptySeq : EmptySet
+        end
+
+        _new(elt, min, max, greedy)
       end
-      Rep._new(elt, min, max, greedy)
     end
 
     def initialize(elt, min=0, max=nil, greedy=true)
@@ -22,7 +25,6 @@ class ABNF
       @max = max
       @greedy = greedy
     end
-    attr_reader :elt, :min, :max, :greedy
 
     def useful?(useful_names)
       @min == 0 ? true : @elt.useful?(useful_names)
