@@ -1,7 +1,6 @@
 require 'tsort'
 
 require 'abnf/parser'
-require 'abnf/core_rules'
 require 'abnf/grammar'
 require 'abnf/regexp'
 
@@ -35,6 +34,13 @@ class ABNF
   ABNFError = Class.new(StandardError)
 
   class << self
+    def core_rules
+      @core_rules ||= begin
+        abnf = File.read("#{__dir__}/abnf/rfc5234_core_rules.abnf")
+        parse abnf, true
+      end
+    end
+
     def parse(desc, dont_merge_core_rules=false)
       grammar = new
       Parser.new(grammar).parse(desc)
