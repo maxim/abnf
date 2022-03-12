@@ -1,6 +1,3 @@
-require 'abnf/abnf'
-require 'abnf/parser'
-
 class ABNF
   class << self
     def core_rules

@@ -1,4 +1,3 @@
-require 'abnf/abnf'
 require 'regexp_tree'
 
 class ABNF
