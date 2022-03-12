@@ -2,11 +2,11 @@ require 'tsort'
 require 'regexp_tree'
 
 require 'abnf/parser'
-require 'abnf/elements/alt'
-require 'abnf/elements/rep'
-require 'abnf/elements/seq'
-require 'abnf/elements/term'
-require 'abnf/elements/var'
+require 'abnf/alt'
+require 'abnf/rep'
+require 'abnf/seq'
+require 'abnf/term'
+require 'abnf/var'
 
 # Convert ABNF to Regexp.
 #
