@@ -63,7 +63,7 @@ class RegexpTree
           neg_mark = @natset.open? ? '^' : ''
 
           regex_char_class =
-            @natset.ranges.each_with_object('') do |r|
+            @natset.ranges.each_with_object('') do |range, r|
               r << encode_elt(range.begin)
               r << '-' if range.size > 2
               r << encode_elt(range.end)
