@@ -1,7 +1,11 @@
 require 'tsort'
 
 require 'abnf/parser'
-require 'abnf/grammar'
+require 'abnf/elements/alt'
+require 'abnf/elements/rep'
+require 'abnf/elements/seq'
+require 'abnf/elements/term'
+require 'abnf/elements/var'
 require 'abnf/regexp'
 
 # Convert ABNF to Regexp.
@@ -32,6 +36,8 @@ class ABNF
   include TSort
 
   ABNFError = Class.new(StandardError)
+  EmptySet = Alt.new
+  EmptySeq = Seq._new
 
   class << self
     def core_rules
