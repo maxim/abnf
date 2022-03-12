@@ -2,10 +2,11 @@ require 'abnf/element'
 
 class ABNF
   class Var < Element
+    attr_reader :name
+
     def initialize(name)
       @name = name
     end
-    attr_reader :name
 
     def useful?(useful_names)
       useful_names[@name]
