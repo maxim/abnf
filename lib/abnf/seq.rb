@@ -2,34 +2,35 @@ require 'abnf/element'
 
 class ABNF
   class Seq < Element
-    class << Seq
-      alias _new new
-    end
+    attr_reader :elts
 
-    def Seq.new(*elts)
-      elts2 = []
-      elts.each {|e|
-        if e.empty_sequence?
-          next
-        elsif Seq === e
-          elts2.concat e.elts
-        elsif e.empty_set?
-          return EmptySet
-        else
-          elts2 << e
+    class << Seq
+      def from_elements(*elts)
+        result = elts.each_with_object([]) do |e, result|
+          next if e.empty_sequence?
+
+          if Seq === e
+            result.concat e.elts
+          elsif e.empty_set?
+            return EmptySet
+          else
+            result << e
+          end
         end
-      }
-      case elts2.length
-      when 0; EmptySeq
-      when 1; elts2.first
-      else; Seq._new(*elts2)
+
+        case result.size
+        when 0; EmptySeq
+        when 1; result.first
+        else; new(*result)
+        end
       end
+
+      alias [] from_elements
     end
 
     def initialize(*elts)
       @elts = elts
     end
-    attr_reader :elts
 
     def empty_sequence?
       @elts.empty?
@@ -40,7 +41,11 @@ class ABNF
     end
 
     def each_var(&block) @elts.each {|elt| elt.each_var(&block)} end
-    def subst_var(&block) Seq.new(*@elts.map {|elt| elt.subst_var(&block)}) end
+
+    def subst_var(&block)
+      Seq[*@elts.map {|elt| elt.subst_var(&block)}]
+    end
+
     def regexp_tree; RegexpTree.seq(*@elts.map {|e| e.regexp_tree}) end
 
     def recursion(syms, lhs)
@@ -84,7 +89,7 @@ class ABNF
         @elts.first.split_left_recursion(n)
       else
         nonrec, rest = @elts.first.split_left_recursion(n)
-        rest1 = Seq.new(*@elts[1..-1])
+        rest1 = Seq[*@elts[1..-1]]
         nonrec += rest1
         rest += rest1
         [nonrec, rest]
@@ -99,7 +104,7 @@ class ABNF
         @elts.first.split_right_recursion(n)
       else
         nonrec, rest = @elts.last.split_right_recursion(n)
-        rest1 = Seq.new(*@elts[0...-1])
+        rest1 = Seq[*@elts[0...-1]]
         nonrec = rest1 + nonrec
         rest = rest1 + rest
         [nonrec, rest]
@@ -115,7 +120,7 @@ class ABNF
       else
         leftmost_nonrec, leftmost_rest_right = @elts.first.split_left_recursion(n)
         rightmost_nonrec, rightmost_rest_left = @elts.last.split_right_recursion(n)
-        rest_middle = Seq.new(*@elts[1...-1])
+        rest_middle = Seq[*@elts[1...-1]]
 
         if leftmost_rest_right.empty_set?
           [leftmost_nonrec + rest_middle + rightmost_rest_left,

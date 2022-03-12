@@ -11,11 +11,11 @@ class ABNF
     end
 
     def +(other)
-      Seq.new(self, other)
+      Seq[self, other]
     end
 
     def |(other)
-      Alt.from_elements(self, other)
+      Alt[self, other]
     end
 
     def *(n)
@@ -35,12 +35,12 @@ class ABNF
 
     def remove_left_recursion(n)
       nonrec, rest = split_left_recursion(n)
-      Seq.new(nonrec, rest.rep)
+      Seq[nonrec, rest.rep]
     end
 
     def remove_right_recursion(n)
       nonrec, rest = split_right_recursion(n)
-      Seq.new(rest.rep, nonrec)
+      Seq[rest.rep, nonrec]
     end
   end
 end

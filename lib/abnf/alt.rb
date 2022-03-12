@@ -24,6 +24,8 @@ class ABNF
         else; new(*result)
         end
       end
+
+      alias [] from_elements
     end
 
     def initialize(*elts)
@@ -40,7 +42,7 @@ class ABNF
 
     def each_var(&block) @elts.each {|elt| elt.each_var(&block)} end
     def subst_var(&block)
-      self.class.from_elements(*@elts.map {|elt| elt.subst_var(&block)})
+      self.class[*@elts.map {|elt| elt.subst_var(&block)}]
     end
 
     def regexp_tree; RegexpTree.alt(*@elts.map {|e| e.regexp_tree}) end
@@ -50,7 +52,7 @@ class ABNF
     end
 
     def remove_just_recursion(n)
-      Alt.from_elements(*@elts.map {|e| e.remove_just_recursion(n)})
+      Alt[*@elts.map {|e| e.remove_just_recursion(n)}]
     end
 
     def split_left_recursion(n)

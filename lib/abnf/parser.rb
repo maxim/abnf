@@ -714,7 +714,7 @@ module_eval(<<'...end parser.y/module_eval...', 'parser.y', 38)
 	      es << Term.new(Natset.new(b))
 	    end
 	  }
-	  yield :val, Seq.new(*es)
+	  yield :val, Seq[*es]
 	when /\A%b([01]+)-([01]+)/
 	  t = $&
 	  yield :val, Term.new(Natset.new($1.to_i(2)..$2.to_i(2)))
@@ -723,7 +723,7 @@ module_eval(<<'...end parser.y/module_eval...', 'parser.y', 38)
 	  (t = $&).scan(/[0-1]+/) {|v|
 	    es << Term.new(Natset.new(v.to_i(2)))
 	  }
-	  yield :val, Seq.new(*es)
+	  yield :val, Seq[*es]
 	when /\A%d([0-9]+)-([0-9]+)/
 	  t = $&
 	  yield :val, Term.new(Natset.new($1.to_i..$2.to_i))
@@ -732,7 +732,7 @@ module_eval(<<'...end parser.y/module_eval...', 'parser.y', 38)
 	  (t = $&).scan(/[0-9]+/) {|v|
 	    es << Term.new(Natset.new(v.to_i))
 	  }
-	  yield :val, Seq.new(*es)
+	  yield :val, Seq[*es]
 	when /\A%x([0-9A-Fa-f]+)-([0-9A-Fa-f]+)/
 	  t = $&
 	  yield :val, Term.new(Natset.new($1.hex..$2.hex))
@@ -741,7 +741,7 @@ module_eval(<<'...end parser.y/module_eval...', 'parser.y', 38)
 	  (t = $&).scan(/[0-9A-Fa-f]+/) {|v|
 	    es << Term.new(Natset.new(v.hex))
 	  }
-	  yield :val, Seq.new(*es)
+	  yield :val, Seq[*es]
 	when /\A<([\x20-\x3D\x3F-\x7E]*)>/
 	  raise ScanError.new("prose-val is not supported: #{$&}")
 	else

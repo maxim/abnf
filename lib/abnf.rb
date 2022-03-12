@@ -39,7 +39,7 @@ class ABNF
   TooComplex = Class.new(StandardError)
   ABNFError = Class.new(StandardError)
   EmptySet = Alt.new
-  EmptySeq = Seq._new
+  EmptySeq = Seq.new
   NonRecursion = 1  # X = a
   JustRecursion = 2 # X = Y
   LeftRecursion = 4 # X = Y a
@@ -317,11 +317,7 @@ class ABNF
           # =>
           # X = a* b c*
           left, middle, right = e.split_recursion(n)
-          resolved_rules[n] = Seq.new(
-            Alt.from_elements(left).rep,
-            Alt.from_elements(middle),
-            Alt.from_elements(right).rep
-          )
+          resolved_rules[n] = Seq[ Alt[left].rep, Alt[middle], Alt[right].rep ]
         end
       end
 
