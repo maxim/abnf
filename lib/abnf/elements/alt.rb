@@ -42,5 +42,50 @@ class ABNF
     def subst_var(&block)
       self.class.from_elements(*@elts.map {|elt| elt.subst_var(&block)})
     end
+
+    def regexp_tree; RegexpTree.alt(*@elts.map {|e| e.regexp_tree}) end
+
+    def recursion(syms, lhs)
+      @elts.inject(0) {|r, e| r | e.recursion(syms, lhs)}
+    end
+
+    def remove_just_recursion(n)
+      Alt.from_elements(*@elts.map {|e| e.remove_just_recursion(n)})
+    end
+
+    def split_left_recursion(n)
+      nonrec = EmptySet
+      rest = EmptySet
+      @elts.each {|e|
+        nonrec1, rest1 = e.split_left_recursion(n)
+        nonrec |= nonrec1
+        rest |= rest1
+      }
+      [nonrec, rest]
+    end
+
+    def split_right_recursion(n)
+      nonrec = EmptySet
+      rest = EmptySet
+      @elts.each {|e|
+        nonrec1, rest1 = e.split_right_recursion(n)
+        nonrec |= nonrec1
+        rest |= rest1
+      }
+      [nonrec, rest]
+    end
+
+    def split_recursion(n)
+      rest_left = EmptySet
+      nonrec = EmptySet
+      rest_right = EmptySet
+      @elts.each {|e|
+        rest_left1, nonrec1, rest_right1 = e.split_recursion(n)
+        rest_left |= rest_left1
+        nonrec |= nonrec1
+        rest_right |= rest_right1
+      }
+      [rest_left, nonrec, rest_right]
+    end
   end
 end

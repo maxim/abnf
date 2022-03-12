@@ -32,5 +32,15 @@ class ABNF
     def rep(min=0, max=nil, greedy=true)
       Rep.new(self, min, max, greedy)
     end
+
+    def remove_left_recursion(n)
+      nonrec, rest = split_left_recursion(n)
+      Seq.new(nonrec, rest.rep)
+    end
+
+    def remove_right_recursion(n)
+      nonrec, rest = split_right_recursion(n)
+      Seq.new(rest.rep, nonrec)
+    end
   end
 end
