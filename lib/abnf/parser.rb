@@ -645,20 +645,10 @@ end
 end
 ###### racc/parser.rb end
 
-
-require 'abnf/grammar'
-
 class ABNF
-  def ABNF.parse(desc, dont_merge_core_rules=false)
-    grammar = ABNF.new
-    Parser.new(grammar).parse(desc)
-    grammar.merge(core_rules) unless dont_merge_core_rules
-    grammar
-  end
-
 class Parser < Racc::Parser
 
-module_eval(<<'...end parser.y/module_eval...', 'parser.y', 48)
+module_eval(<<'...end parser.y/module_eval...', 'parser.y', 38)
 
   def initialize(grammar)
     @grammar = grammar

@@ -2,8 +2,8 @@ require 'tsort'
 
 require 'abnf/parser'
 require 'abnf/core_rules'
-require 'abnf/regexp'
 require 'abnf/grammar'
+require 'abnf/regexp'
 
 # Convert ABNF to Regexp.
 #
@@ -33,6 +33,15 @@ class ABNF
   include TSort
 
   ABNFError = Class.new(StandardError)
+
+  class << self
+    def parse(desc, dont_merge_core_rules=false)
+      grammar = new
+      Parser.new(grammar).parse(desc)
+      grammar.merge(core_rules) unless dont_merge_core_rules
+      grammar
+    end
+  end
 
   def initialize
     @names = []
