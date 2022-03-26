@@ -53,14 +53,14 @@ class ABNF
     def core_rules
       @core_rules ||= begin
         abnf = File.read("#{__dir__}/abnf/rfc5234_core_rules.abnf")
-        parse abnf, true
+        parse abnf, with_core_rules: false
       end
     end
 
-    def parse(desc, dont_merge_core_rules=false)
+    def parse(desc, with_core_rules: true)
       grammar = new
       Parser.new(grammar).parse(desc)
-      grammar.merge(core_rules) unless dont_merge_core_rules
+      grammar.merge(core_rules) if with_core_rules
       grammar
     end
 
