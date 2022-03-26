@@ -2,7 +2,10 @@ require 'tsort'
 require 'regexp_tree'
 
 require 'abnf/parser'
+
 require 'abnf/alt'
+require 'abnf/empty_seq'
+require 'abnf/empty_set'
 require 'abnf/rep'
 require 'abnf/seq'
 require 'abnf/term'
@@ -38,8 +41,7 @@ class ABNF
   # Raised when ABNF grammar is too complex to convert to Regexp.
   TooComplex = Class.new(StandardError)
   ABNFError = Class.new(StandardError)
-  EmptySet = Alt.new
-  EmptySeq = Seq.new
+
   NonRecursion = 1  # X = a
   JustRecursion = 2 # X = Y
   LeftRecursion = 4 # X = Y a
