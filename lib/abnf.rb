@@ -141,16 +141,16 @@ class ABNF
     rules = {}
     id_map = {}
     stack = []
-    starts.each {|name|
+
+    starts.each do |name|
       next if id_map.include? name
-      each_strongly_connected_component_from(name, id_map, stack) {|syms|
-        syms.each {|sym|
-          rules[sym] = @rules[sym] if @rules.include? sym
-        }
-      }
-    }
+      each_strongly_connected_component_from(name, id_map, stack) do |syms|
+        rules.merge! @rules.slice(*syms)
+      end
+    end
+
     @rules = rules
-    @names.reject! {|name| !@rules.include?(name)}
+    @names.reject! { |name| !@rules.include?(name) }
     self
   end
 
@@ -216,7 +216,7 @@ class ABNF
 
       while updated
         updated = false
-        names.reject! { |n| !rules.include?(n) }
+        names.filter! { |n| rules.include?(n) }
         recursions = {}
 
         names.reverse_each do |n|

@@ -1,3 +1,4 @@
  ☐ Remove rdoc (()) interpolations from docs.
  ☐ In term.rb EmptySet is assigned outside, and seems unrelated to Term.
- ☐ Try moving recursion and EmptySet/Seq injection out to a higher abstraction.
+ ☐ Extract ABNF::Tokenizer out of parser.y
+ ☐ Extract ABNF::AST out of ABNF
