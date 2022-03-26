@@ -129,6 +129,11 @@ class ABNF
           }
           yield :val, Seq[*es]
         when /\A<([\x20-\x3D\x3F-\x7E]*)>/
+          # Using angle brackets (i.e. <rulename>) is a way to refer to ABNF
+          # rules in regular written text. It's called "prose-val". The angle
+          # brackets are normally also accepted on the left side of the rule
+          # assignment, but this parser does not support them, whether in prose,
+          # or in rule lists.
           raise ScanError.new("prose-val is not supported: #{$&}")
         else
           raise ScanError.new(line)
