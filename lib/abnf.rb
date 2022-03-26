@@ -84,15 +84,6 @@ class ABNF
     @start = nil
   end
 
-  def tsort_each_node(&block)
-    @names.each(&block)
-  end
-
-  def tsort_each_child(name)
-    return unless @rules.include? name
-    @rules.fetch(name).each_var { |n| yield n }
-  end
-
   def start_symbol=(name)
     @start = name
   end
@@ -139,6 +130,11 @@ class ABNF
     @names.each do |name|
       yield name, @rules[name]
     end
+  end
+
+  def tsort_each_child(name)
+    return unless @rules.include? name
+    @rules.fetch(name).each_var { |n| yield n }
   end
 
   def delete_unreachable!(starts)
