@@ -84,10 +84,6 @@ class ABNF
     @start = nil
   end
 
-  def start_symbol=(name)
-    @start = name
-  end
-
   def start_symbol
     return @start if @start
     raise StandardError, 'no symbol defined' if @rules.empty?
@@ -100,10 +96,6 @@ class ABNF
 
   def merge(other)
     @rules.merge!(other) { |_, mine, theirs| mine | theirs }
-  end
-
-  def add(name, rhs)
-    merge(name => rhs)
   end
 
   def to_hash

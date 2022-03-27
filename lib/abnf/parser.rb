@@ -902,7 +902,7 @@ module_eval(<<'.,.,', 'parser.y', 5)
   def _reduce_2(val, _values, result)
     name = val[1][0]
     rhs = val[1][1]
-    @grammar.add(name, rhs)
+    @grammar.merge(name => rhs)
     result ||= name
     result
   end

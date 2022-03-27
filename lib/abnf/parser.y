@@ -5,7 +5,7 @@ rule
   | rulelist rule
     {name = val[1][0]
     rhs = val[1][1]
-    @grammar.add(name, rhs)
+    @grammar.merge(name => rhs)
     result ||= name}
 
   rule: defname assign alt {result = [val[0], val[2]]}
