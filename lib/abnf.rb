@@ -131,11 +131,8 @@ class ABNF
     self
   end
 
-  def delete_useless!(starts=nil)
-    if starts
-      starts = [starts] if Symbol === starts
-      delete_unreachable!(starts)
-    end
+  def delete_useless!(*starts)
+    delete_unreachable!(starts) unless starts.empty?
 
     useful_names = {}
     using_names = {}
