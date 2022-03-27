@@ -68,26 +68,19 @@ class ABNF
     # Converts ((|abnf_description|)) to a Regexp object corresponding with
     # ((|start_symbol|)). If ((|start_symbol|)) is not specified, first symbol
     # in ((|abnf_description|)) is used.
-    def regexp(desc, name=nil)
-      regexp_tree(desc, name).regexp
+    def regexp(*args)
+      regexp_tree(*args).regexp
     end
 
     # Converts ((|abnf_description|)) to a ((<RegexpTree>)) object corresponding
     # with ((|start_symbol|)).
-    def regexp_tree(desc, name=nil)
-      parse(desc).regexp_tree(name)
+    def regexp_tree(desc, *args)
+      parse(desc).regexp_tree(*args)
     end
   end
 
   def initialize
     @rules = {}
-    @start = nil
-  end
-
-  def start_symbol
-    return @start if @start
-    raise StandardError, 'no symbol defined' if @rules.empty?
-    names.first
   end
 
   def names
@@ -163,15 +156,14 @@ class ABNF
     self
   end
 
-  def regexp(name = start_symbol)
+  def regexp(name = names.first)
     regexp_tree(name).regexp
   end
 
   # Convert a recursive rule to non-recursive rule if possible. This conversion
   # is *not* perfect. It may fail even if possible. More work (survey) is
   # needed.
-  def regexp_tree(name = nil)
-    name ||= start_symbol
+  def regexp_tree(name = names.first)
     env = {}
 
     each_strongly_connected_component_from(name) do |names|
