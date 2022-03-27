@@ -203,7 +203,7 @@ class ABNF
 
       while updated
         updated = false
-        names.filter! { |n| rules.include?(n) }
+        names.select! { |n| rules.include?(n) }
         recursions = {}
 
         names.reverse_each do |n|
