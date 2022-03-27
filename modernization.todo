@@ -1,4 +1,4 @@
- ☐ Remove rdoc (()) interpolations from docs.
- ☐ In term.rb EmptySet is assigned outside, and seems unrelated to Term.
- ☐ Extract ABNF::Tokenizer out of parser.y
+ ☐ Remove rdoc (()) interpolations from docs
+ ☐ In term.rb EmptySet is assigned outside, and seems unrelated to Term
  ☐ Extract ABNF::AST out of ABNF
+ ☐ Extract ABNF::Tokenizer out of parser.y

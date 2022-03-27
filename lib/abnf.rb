@@ -1,4 +1,5 @@
 require 'tsort'
+require 'set'
 require 'regexp_tree'
 
 require 'abnf/parser'
@@ -79,7 +80,6 @@ class ABNF
   end
 
   def initialize
-    @names = []
     @rules = {}
     @start = nil
   end
@@ -90,33 +90,24 @@ class ABNF
 
   def start_symbol
     return @start if @start
-    raise StandardError, 'no symbol defined' if @names.empty?
-    @names.first
+    raise StandardError, 'no symbol defined' if @rules.empty?
+    names.first
   end
 
   def names
-    @names.dup
+    @rules.keys
   end
 
-  def merge(g)
-    g.each do |name, rhs|
-      add(name, rhs)
-    end
+  def merge(other)
+    @rules.merge!(other) { |_, mine, theirs| mine | theirs }
   end
 
   def add(name, rhs)
-    if @rules.include? name
-      @rules[name] |= rhs
-    else
-      @names << name
-      @rules[name] = rhs
-    end
+    merge(name => rhs)
   end
 
-  def each(&block)
-    @names.each do |name|
-      yield name, @rules[name]
-    end
+  def to_hash
+    @rules
   end
 
   def tsort_each_child(name)
@@ -125,19 +116,18 @@ class ABNF
   end
 
   def delete_unreachable!(starts)
-    rules = {}
+    reachable = Set[]
     id_map = {}
     stack = []
 
     starts.each do |name|
       next if id_map.include? name
       each_strongly_connected_component_from(name, id_map, stack) do |syms|
-        rules.merge! @rules.slice(*syms)
+        reachable += syms
       end
     end
 
-    @rules = rules
-    @names.reject! { |name| !@rules.include?(name) }
+    @rules.select! { |key, _| reachable.include?(key) }
     self
   end
 
@@ -181,7 +171,6 @@ class ABNF
     #xxx: raise if some of start symbol becomes empty set?
 
     @rules = rules
-    @names.reject! {|name| !@rules.include?(name)}
     self
   end
 
