@@ -104,15 +104,6 @@ class ABNF
     end
   end
 
-  def [](name)
-    @rules[name]
-  end
-
-  def []=(name, rhs)
-    @names << name unless @rules.include? name
-    @rules[name] = rhs
-  end
-
   def add(name, rhs)
     if @rules.include? name
       @rules[name] |= rhs
@@ -120,10 +111,6 @@ class ABNF
       @names << name
       @rules[name] = rhs
     end
-  end
-
-  def include?(name)
-    @rules.include? name
   end
 
   def each(&block)
