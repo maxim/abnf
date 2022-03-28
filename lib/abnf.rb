@@ -3,14 +3,13 @@ require 'set'
 require 'regexp_tree'
 
 require 'abnf/parser'
-
-require 'abnf/alt'
-require 'abnf/empty_seq'
-require 'abnf/empty_set'
-require 'abnf/rep'
-require 'abnf/seq'
-require 'abnf/term'
-require 'abnf/var'
+require 'abnf/ast/alt'
+require 'abnf/ast/empty_seq'
+require 'abnf/ast/empty_set'
+require 'abnf/ast/rep'
+require 'abnf/ast/seq'
+require 'abnf/ast/term'
+require 'abnf/ast/var'
 
 # Convert ABNF to Regexp.
 #

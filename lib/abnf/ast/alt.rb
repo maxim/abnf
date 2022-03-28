@@ -1,4 +1,4 @@
-require 'abnf/element'
+require 'abnf/ast/element'
 
 class ABNF
   class Alt < Element
