@@ -118,26 +118,26 @@ class ABNF
   def delete_useless!(*starts)
     delete_unreachable!(starts) unless starts.empty?
 
-    useful_names = {}
+    useful_names = Set[]
     using_names = {}
 
     @rules.each do |name, rhs|
-      useful_names[name] = true if rhs.useful?(useful_names)
+      useful_names << name if rhs.useful?(useful_names)
       rhs.each_var {|n|
         (using_names[n] ||= {})[name] = true
       }
     end
 
-    queue = useful_names.keys
+    queue = useful_names.to_a
     until queue.empty?
       n = queue.pop
       next unless using_names[n]
       using_names[n].keys.each do |name|
-        if useful_names[name]
+        if useful_names.include?(name)
           using_names[n].delete name
         elsif @rules[name].useful?(useful_names)
           using_names[n].delete name
-          useful_names[name] = true
+          useful_names << name
           queue << name
         end
       end
@@ -145,7 +145,7 @@ class ABNF
 
     rules = {}
     @rules.each do |name, rhs|
-      rhs = rhs.subst_var {|n| useful_names[n] ? nil : EmptySet}
+      rhs = rhs.subst_var { |n| useful_names.include?(n) ? nil : EmptySet }
       rules[name] = rhs unless rhs.empty_set?
     end
 

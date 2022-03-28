@@ -9,7 +9,7 @@ class ABNF
     end
 
     def useful?(useful_names)
-      useful_names[@name]
+      useful_names.include?(@name)
     end
 
     def each_var(&block) yield @name end
