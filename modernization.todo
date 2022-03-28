@@ -1,4 +1,20 @@
+The goal of the modernization branch is to make it easier for modern rubyists to
+continue maintaining and improving the abnf gem.
+
+General ideas to boost maintainability:
+  1. Update the file and code structure in accordance with modern Ruby practices
+  2. Split responsibilities a little more (i.e. introduce AST)
+  3. Move most logic out of parser.y (that doesn't have to be there)
+  4. Rewrite routines and algorithms in a simpler/clearer way
+  5. Use more descriptive naming
+  6. Write explanatory comments to clarify the "why" and add context
+  7. Expand the configurability/flexibility
+  8. Potentially add more tests
+
+Braindump TODO list (always changing):
  ☐ Remove rdoc (()) interpolations from docs
  ☐ In term.rb EmptySet is assigned outside, and seems unrelated to Term
+ ☐ Turn "useful_names" Hash into a Set
+ ☐ Find a better way to convey `useful?` concept
  ☐ Extract ABNF::AST out of ABNF
  ☐ Extract ABNF::Tokenizer out of parser.y
