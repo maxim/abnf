@@ -118,21 +118,17 @@ class ABNF
   def delete_useless!(*starts)
     delete_unreachable!(starts) unless starts.empty?
 
-    useful_names = Set[]
-    using_names = {}
-
-    @rules.each do |name, rhs|
-      useful_names << name if rhs.useful?(useful_names)
-      rhs.each_var {|n|
-        (using_names[n] ||= {})[name] = true
+    useful_names, using_names =
+      @rules.each_with_object([Set[], {}]) { |(name, rhs), (useful, using)|
+        useful << name if rhs.useful?(useful)
+        rhs.each_var { |n| (using[n] ||= Set[]) << name }
       }
-    end
 
     queue = useful_names.to_a
     until queue.empty?
       n = queue.pop
       next unless using_names[n]
-      using_names[n].keys.each do |name|
+      using_names[n].each do |name|
         if useful_names.include?(name)
           using_names[n].delete name
         elsif @rules[name].useful?(useful_names)
