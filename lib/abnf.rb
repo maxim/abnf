@@ -100,16 +100,16 @@ class ABNF
   end
 
   def delete_unreachable!(starts)
-    reachable = Set[]
     id_map = {}
     stack = []
 
-    starts.each do |name|
-      next if id_map.include? name
-      each_strongly_connected_component_from(name, id_map, stack) do |syms|
-        reachable += syms
-      end
-    end
+    reachable =
+      starts.each_with_object(Set[]) { |start, set|
+        next if id_map.include? start
+        each_strongly_connected_component_from(start, id_map, stack) do |syms|
+          set.merge(syms)
+        end
+      }
 
     @rules.select! { |key, _| reachable.include?(key) }
     self
