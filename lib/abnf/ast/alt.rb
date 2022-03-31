@@ -1,6 +1,7 @@
 require 'abnf/ast/element'
 
 class ABNF
+  # Alternation — a set of elements, any of which is expected to match.
   class Alt < Element
     attr_reader :elts
 

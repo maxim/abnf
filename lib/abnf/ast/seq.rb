@@ -1,6 +1,7 @@
 require 'abnf/ast/element'
 
 class ABNF
+  # Sequence — a set of elements that must match in the given order.
   class Seq < Element
     attr_reader :elts
 

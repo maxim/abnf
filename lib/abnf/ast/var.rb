@@ -1,6 +1,7 @@
 require 'abnf/ast/element'
 
 class ABNF
+  # Variable — a name of a rule that's defined elsewhere in the rulelist.
   class Var < Element
     attr_reader :name
 

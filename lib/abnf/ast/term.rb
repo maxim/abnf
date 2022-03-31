@@ -2,6 +2,7 @@ require 'abnf/ast/element'
 require 'natset'
 
 class ABNF
+  # Term — byte ranges of allowed characters to match a single character.
   class Term < Element
     attr_reader :natset
 

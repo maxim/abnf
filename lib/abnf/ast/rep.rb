@@ -1,6 +1,7 @@
 require 'abnf/ast/element'
 
 class ABNF
+  # Repetition — an element that can repeat min to max times.
   class Rep < Element
     attr_reader :elt, :min, :max, :greedy
 

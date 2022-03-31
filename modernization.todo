@@ -14,7 +14,6 @@ General ideas to boost maintainability:
 Braindump TODO list (always changing):
  ☐ Remove rdoc (()) interpolations from docs
  ☐ In term.rb EmptySet is assigned outside, and seems unrelated to Term
- ☐ Turn "useful_names" Hash into a Set
  ☐ Find a better way to convey `useful?` concept
  ☐ Extract ABNF::AST out of ABNF
  ☐ Extract ABNF::Tokenizer out of parser.y
